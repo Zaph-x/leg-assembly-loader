@@ -1,7 +1,7 @@
 #ifndef DIRECTIVES_TOKENS_HPP
 #define DIRECTIVES_TOKENS_HPP
 
-#include "tokensets\datatype_tokens.hpp"
+#include "datatype_tokens.hpp"
 
 // https://developer.arm.com/documentation/101754/0618/armclang-Reference/armclang-Integrated-Assembler/Conditional-assembly-directives
 #define CONDITIONAL_ASM_DIRECTIVES \
