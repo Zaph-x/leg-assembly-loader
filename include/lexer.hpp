@@ -6,6 +6,7 @@
 #include <sstream>
 #include <vector>
 #include "token.hpp"
+#include <map>
 
 namespace ARM{
     namespace Lexer{
