@@ -16,7 +16,7 @@ namespace ARM{
                 Lexem(Tokens::Token token, std::string lexem, int line, int possition) : token(token), lexem(lexem), line(line), possition(possition) {}
                 ~Lexem() = default;
                 Tokens::Token get_token() const { return token; }
-                std::string get_lexem() const { return lexem; }
+                std::string get_curr_lexem() const { return lexem; }
                 int get_line() const { return line; }
                 int get_possition() const { return possition; }
             private:
@@ -34,9 +34,11 @@ namespace ARM{
                 ~Lexer() = default;
                 int get_line() const { return line; }
                 int get_position() const { return position; }
-                Lexem get_lexem() const { return curr_lexem; }
+                Lexem get_curr_lexem() const { return curr_lexem; }
+                std::vector<Lexem> get_lexems() const { return lexems; }
                 Lexem next_token();
                 void advance();
+                void run();
             private:
                 std::istream *in;
                 int line;
