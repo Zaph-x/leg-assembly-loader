@@ -1,23 +1,22 @@
 #ifndef ARITHMETIC_TOKENS_HPP
 #define ARITHMETIC_TOKENS_HPP
+
 //https://comp.anu.edu.au/courses/comp2300/resources/ARM_cheat_sheet/
 #define ARITHMETIC_OPS \
-    X(ADD)\
-    X(ADC)\
-    X(QADD)\
-    X(SUB)\
-    X(SUBS)\
-    X(SBC)\
-    X(RSB)\
-    X(QSUB)\
-    X(MUL)\
-    X(MLA)\
-    X(MLS)\
-    X(UMULL)\
-    X(UMLAL)\
-    X(SMULL)\
-    X(SMLAL)\
-    X(UDIV)\
-    X(SDIV)
+    COND_INSTR_S(ADD)\
+    COND_INSTR_S(ADC)\
+    COND_INSTR_S(SUB)\
+    COND_INSTR_S(SBC)\
+    COND_INSTR_S(RSB)\
+    COND_INSTR_S(RSC)\
+    COND_INSTR_S(MUL)\
+    COND_INSTR_S(MLA)\
+    COND_INSTR_S(UMULL)\
+    COND_INSTR_S(UMLAL)\
+    COND_INSTR_S(SMULL)\
+    COND_INSTR_S(SMLAL)\
+    COND_INSTR_S(MLS)\
+    COND_INSTR_S(UDIV)\
+    COND_INSTR_S(SDIV)
 
 #endif

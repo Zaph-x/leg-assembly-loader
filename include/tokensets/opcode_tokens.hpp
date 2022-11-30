@@ -1,8 +1,5 @@
 #ifndef OPCODE_TOKENS_HPP
 #define OPCODE_TOKENS_HPP
-
-#define MOVE_OPS \
-    X(MOV)
     
 #define SHIFT_OPS \
     X(LSL)\
@@ -48,7 +45,6 @@
 #define OPCODES \
     ARITHMETIC_OPS \
     LOGICAL_OPS \
-    MOVE_OPS \
     SHIFT_OPS \
     LOAD_STORE_OPS \
     BRANCH_OPS \

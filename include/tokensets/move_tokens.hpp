@@ -1,0 +1,8 @@
+#ifndef MOVE_TOKENS_HPP
+#define MOVE_TOKENS_HPP
+
+#define MOVE_INSTRUCTIONS \
+    COND_INSTR_S(MOV)\
+    COND_INSTR_S(MVN)
+
+#endif
