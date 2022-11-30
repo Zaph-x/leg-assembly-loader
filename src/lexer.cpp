@@ -8,14 +8,17 @@ namespace ARM
 {
     namespace Lexer
     {
-        void Lexer::advance() {
+        void Lexer::advance()
+        {
             curr_lexem = next_token();
             lexems.push_back(curr_lexem);
             buffer.clear();
         }
 
-        void Lexer::run() {
-            while (in->good()) {
+        void Lexer::run()
+        {
+            while (in->good())
+            {
                 advance();
             }
         }
@@ -48,79 +51,124 @@ namespace ARM
             int c;
             while (char c = get_next_char())
             {
-                if (c == EOF) return Lexem(Tokens::Token::EOF_TOKEN, "", line, position);
-                while (isspace(c)){
-                    if (c == '\n') 
+                if (c == EOF)
+                    return Lexem(Tokens::Token::EOF_TOKEN, "", line, position);
+                while (isspace(c))
+                {
+                    if (c == '\n')
                         return Lexem(Tokens::Token::EOL_TOKEN, "\n", line, position);
                     c = get_next_char();
                 }
 
-                if (isprint(c)) {
-                    if (Tokens::symbols_map.contains(c)){
+                if (isprint(c))
+                {
+                    if (Tokens::symbols_map.contains(c))
+                    {
                         return Lexem(Tokens::symbols_map[c], std::string(1, c), line, position);
                     }
-                    
-                    if (c == 'w' || c == 'x' || c == 'v' || c == 's' || c == 'd'  || c == 'b' || c == 'h') {
+                    if (Tokens::section_flags_map.contains(c))
+                    {
+                        return Lexem(Tokens::section_flags_map[c], std::string(1, c), line, position);
+                    }
+                    if (c == 'w' || c == 'x' || c == 'v' || c == 's' || c == 'd' || c == 'b' || c == 'h')
+                    {
                         buffer += c;
-                        while (isalnum(in->peek())) {
+                        while (isalnum(in->peek()))
+                        {
                             buffer += in->get();
                         }
-                        if (Tokens::registers_map.contains(buffer)) {
+                        if (Tokens::registers_map.contains(buffer))
+                        {
                             return Lexem(Tokens::registers_map[buffer], buffer, line, position);
                         }
-                        else {
+                        else
+                        {
                             return Lexem(Tokens::Token::ERROR, buffer, line, position);
                         }
                     }
-                    if (c == '0' && in->peek() == 'x') {
+                    if (c == '0' && in->peek() == 'x')
+                    {
                         buffer += c;
                         buffer += in->get();
-                        while (isxdigit(in->peek())) {
+                        while (isxdigit(in->peek()))
+                        {
                             buffer += in->get();
                         }
                         return Lexem(Tokens::Token::HEX_NUMBER, buffer, line, position);
                     }
-                    if (isdigit(c)) {
+                    if (isdigit(c))
+                    {
                         buffer += c;
-                        while (isdigit(in->peek())) {
+                        while (isdigit(in->peek()))
+                        {
                             buffer += in->get();
                         }
                         return Lexem(Tokens::Token::DEC_NUMBER, buffer, line, position);
                     }
-                    if (c == '"') {
+                    if (c == '"')
+                    {
                         buffer += c;
-                        while (in->peek() != '"' && buffer.back() != '\\') {
+                        while (in->peek() != '"' && buffer.back() != '\\')
+                        {
                             buffer += in->get();
                         }
                         buffer += in->get();
                         return Lexem(Tokens::Token::RAW_STRING, buffer, line, position);
                     }
-                    if (c == '.') {
+                    if (c == '.')
+                    {
                         buffer += c;
-                        while (isalnum(in->peek()) || in->peek() == '_') {
+                        while (isalnum(in->peek()) || in->peek() == '_')
+                        {
                             buffer += in->get();
                         }
-                        if (Tokens::directives_map.contains(buffer)) {
+                        if (Tokens::directives_map.contains(buffer))
+                        {
                             return Lexem(Tokens::directives_map[buffer], buffer, line, position);
                         }
-                        else {
+                        if (Tokens::section_map.contains(buffer))
+                        {
+                            return Lexem(Tokens::section_map[buffer], buffer, line, position);
+                        }
+                        else
+                        {
                             return Lexem(Tokens::Token::ERROR, buffer, line, position);
                         }
                     }
 
-
-                    else {
+                    else
+                    {
                         buffer += c;
-                        while (!isspace(in->peek()) && in->peek() != EOF && !in->peek() != '\n') {
+                        while (!isspace(in->peek()) && in->peek() != EOF && !in->peek() != '\n')
+                        {
                             buffer += in->get();
                             std::cout << buffer << std::endl;
                         }
-                        if (!buffer.compare("armv8-a")) {
+                        if (!buffer.compare("armv8-a"))
+                        {
                             return Lexem(Tokens::Token::ARMV8_A, buffer, line, position);
                         }
-                        else {
+                        else if (Tokens::conditional_map.contains(buffer))
+                        {
+                            return Lexem(Tokens::conditional_map[buffer], buffer, line, position);
+                        }
+                        else if (Tokens::branch_map.contains(buffer))
+                        {
+                            return Lexem(Tokens::branch_map[buffer], buffer, line, position);
+                        }
+                        else if (Tokens::shift_ops_map.contains(buffer))
+                        {
+                            return Lexem(Tokens::shift_ops_map[buffer], buffer, line, position);
+                        }
+                        else if (isalnum(buffer[0]))
+                        {
                             return Lexem(Tokens::Token::IDENTIFIER, buffer, line, position);
                         }
+                        else
+                        {
+                            return Lexem(Tokens::Token::ERROR, buffer, line, position);
+                        }
+
                     }
                 }
             }
@@ -128,4 +176,3 @@ namespace ARM
         }
     }
 }
-
