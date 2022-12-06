@@ -94,6 +94,7 @@ namespace ARM
     X(DEC_NUMBER)    \
     X(HEX_NUMBER)   \
     X(ARMV8_A) \
+    X(LABEL)        \
     X(ERROR)
 
         enum class Token
@@ -267,7 +268,7 @@ namespace ARM
         };
 
         inline static std::unordered_map<std::string, Token> directives_map = {
-            {".alig", Token::ALIGN},
+            {".align", Token::ALIGN},
             {".file", Token::FILE},
             {".arch", Token::ARCHITECTURE},
             {".arch_extended", Token::ARCHITECTURE_EXTENDED},

@@ -103,6 +103,9 @@ namespace ARM
                         if (Tokens::directives_map.contains(buffer)) {
                             return Lexem(Tokens::directives_map[buffer], buffer, line, position);
                         }
+                        else if (Tokens::section_map.contains(buffer)) {
+                            return Lexem(Tokens::section_map[buffer], buffer, line, position);
+                        }
                         else {
                             return Lexem(Tokens::Token::ERROR, buffer, line, position);
                         }
@@ -113,13 +116,12 @@ namespace ARM
                         buffer += c;
                         while (!isspace(in->peek()) && in->peek() != EOF && !in->peek() != '\n') {
                             buffer += in->get();
-                            std::cout << buffer << std::endl;
                         }
                         if (!buffer.compare("armv8-a")) {
                             return Lexem(Tokens::Token::ARMV8_A, buffer, line, position);
                         }
                         else {
-                            return Lexem(Tokens::Token::IDENTIFIER, buffer, line, position);
+                            return Lexem(Tokens::Token::LABEL, buffer, line, position);
                         }
                     }
                 }
