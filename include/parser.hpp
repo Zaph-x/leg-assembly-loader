@@ -43,7 +43,7 @@ namespace Parser{
             curr_lexem = lexems.begin();
         }
         ~parser() = default;
-        parsed_token get_curr_token() const { return *curr_lexem; }
+        ARM::Lexer::Lexem get_curr_token() const { return *curr_lexem; }
         std::vector<parsed_token> get_parsed_tokens() const { return parsed_tokens; }
         void run();
     private:
