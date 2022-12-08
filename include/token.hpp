@@ -267,6 +267,8 @@ namespace ARM
             }
         };
 
+        
+
         inline static std::unordered_map<std::string, Token> directives_map = {
             {".align", Token::ALIGN},
             {".file", Token::FILE},
@@ -323,6 +325,7 @@ namespace ARM
             {'!', Token::EXCLAMATION},
             {',', Token::COMMA},
             {'+', Token::PLUS_SIGN},
+            {':', Token::COLON},
         };
 
         inline static std::unordered_map<std::string, Token> branch_map = {
