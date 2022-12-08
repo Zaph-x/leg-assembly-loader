@@ -10,11 +10,11 @@
 
 namespace ARM{
 namespace Parser{
-    class ASTNode {
+    class parsed_token {
     public:
-        ASTNode() = default;
-        ASTNode(Tokens::Token token, std::string lexem, int line, int possition) : token(token), lexem(lexem), line(line), possition(possition) {}
-        ~ASTNode() = default;
+        parsed_token() = default;
+        parsed_token(Tokens::Token token, std::string lexem, int line, int possition) : token(token), lexem(lexem), line(line), possition(possition) {}
+        ~parsed_token() = default;
         Tokens::Token get_token() const { return token; }
         int get_line() const { return line; }
         int get_possition() const { return possition; }
@@ -43,13 +43,18 @@ namespace Parser{
             curr_lexem = lexems.begin();
         }
         ~parser() = default;
-        Lexer::Lexem get_curr_token() const { return *curr_lexem; }
-        std::vector<ASTNode> get_parsed_tokens() const { return parsed_tokens; }
+        parsed_token get_curr_token() const { return *curr_lexem; }
+        std::vector<parsed_token> get_parsed_tokens() const { return parsed_tokens; }
         void run();
     private:
         std::vector<ARM::Lexer::Lexem> lexems;
-        std::vector<ASTNode> parsed_tokens;
+        std::vector<parsed_token> parsed_tokens;
         std::vector<ARM::Lexer::Lexem>::iterator curr_lexem;
+        void parse_instruction();
+        void parse_register();
+        void parse_label();
+        void parse_value();
+        void parse_character();
     };
 }
 }
