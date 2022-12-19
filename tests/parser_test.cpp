@@ -1,7 +1,7 @@
 #include "doctest.h"
 #include "parser.hpp"
 
-
+/*
 TEST_CASE("Parsed tokens can get proper values") {
     SUBCASE("Can get proper value for a string in a token") {
         ARM::Parser::parsed_token token(ARM::Tokens::Token::RAW_STRING, "Hello world", 0, 0);
@@ -39,4 +39,4 @@ TEST_CASE("Parsed tokens can get proper values") {
         ARM::Parser::parsed_token token(ARM::Tokens::Token::HEX_NUMBER, "0x1234", 0, 0);
         CHECK_THROWS(token.get_float_value());
     }
-}
+}*/

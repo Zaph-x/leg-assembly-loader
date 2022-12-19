@@ -8,7 +8,7 @@ namespace ARM
         float uint32_to_float(uint32_t word)
         {
             bool sign = word & 0x80000000;
-            int32_t exponent = (word & 0x7F800000) >> 23;
+            uint32_t exponent = (word & 0x7F800000) >> 23;
             uint32_t mantissa = word & 0x007FFFFF;
             float result = 0.0f;
             if (exponent == 0xFF)

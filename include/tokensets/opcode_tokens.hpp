@@ -1,53 +1,24 @@
 #ifndef OPCODE_TOKENS_HPP
 #define OPCODE_TOKENS_HPP
-    
-#define SHIFT_OPS \
-    X(LSL)\
-    X(LSR)\
-    X(ASR)\
-    X(ROR)\
-    X(RRX)
-  
-  #define CONDITIONL_BRANCH_OPS \
-    X(CBZ) \
-    X(CBNZ) \
-    X(TBNZ) \
-    X(BEQ) \
-    X(BNE) \
-    X(BLT) \
-    X(BGT) \
-    X(BLE) \
-    X(BGE)
 
-#define BRANCH_OPS \
-    CONDITIONL_BRANCH_OPS \
-    X(B) \
-    X(BL) \
-    X(BR) \
-    X(BLR) \
-    X(BX) \
-    X(BLX) \
-    X(BXJ) \
-    X(BLXJ) \
-    X(BKPT) \
-    X(SVC) \
-    X(HVC) \
-    X(SMC) \
-    X(UDF)
-
-#define FLAG_OPS \
-    X(N) \
-    X(Z) \
-    X(C) \
-    X(V) \
-    X(Q)
 
 #define OPCODES \
-    ARITHMETIC_OPS \
-    LOGICAL_OPS \
-    SHIFT_OPS \
-    LOAD_STORE_OPS \
-    BRANCH_OPS \
+    X(ADD_OPCODE) \
+    X(ADD_CARRY_OPCODE)            \
+    X(SUB_OPCODE) \
+    X(SUB_CARRY_OPCODE) \
+    X(REVERSE_SUB_OPCODE) \
+    X(REVERSE_SUB_CARRY_OPCODE) \
+    X(MUL_OPCODE) \
+    X(LOGICAL_OPCODE) \
+    X(SHIFT_OPCODE) \
+    X(LOAD_OPCODE)      \
+    X(STORE_OPCODE)            \
+    X(BRANCH_OPCODE)               \
+    X(AND_OPCODE)\
+    X(EXCLUSIVE_OR_OPCODE)\
+    X(OR_OPCODE)\
+    X(BIT_CLEAR_OPCODE) \
     X(RET)
 
 #endif

@@ -22,6 +22,10 @@ namespace ARM
     namespace Tokens
     {
 
+#define SUB_DIRECTIVES \
+    X(REL)             \
+    X(GNU_STACK)
+
 #define SYMBOLS      \
     X(EOF_TOKEN)     \
     X(COLON)         \
@@ -82,186 +86,40 @@ namespace ARM
 
 #define TOKENS      \
     SYMBOLS         \
+    SUB_DIRECTIVES  \
     OPCODES         \
     REGISTERS       \
     DIRECTIVES      \
     KEYWORDS        \
     SECTION_FIELDS  \
-    CONDITION_CODES \
-    TYPE_TYPES \
-    MOVE_INSTRUCTIONS \
+    TYPE_TYPES      \
+    CONDITION_CODES\
+    X(TYPE_DIRECTIVE) \
+    X(MOVE_INSTRUCTION) \
     X(RAW_STRING) \
     X(DEC_NUMBER)    \
     X(HEX_NUMBER)   \
     X(ARMV8_A) \
+    X(PROGBITS)     \
     X(LABEL)        \
     X(ERROR)
 
         enum class Token
         {
-#define COND_INSTR(OP) OP, OP##EQ, OP##NE, OP##CS, OP##CC, OP##MI, OP##PL, OP##HS, OP##NV, OP##LO, OP##VS, OP##VC, OP##HI, OP##LS, OP##GE, OP##LT, OP##GT, OP##LE, OP##AL,  
-#define COND_INSTR_(OP,LTR) OP##LTR, OP##EQ##LTR, OP##NE##LTR, OP##CS##LTR, OP##CC##LTR, OP##MI##LTR, OP##PL##LTR, OP##HS##LTR, OP##NV##LTR, OP##LO##LTR, OP##VS##LTR, OP##VC##LTR, OP##HI##LTR, OP##LS##LTR, OP##GE##LTR, OP##LT##LTR, OP##GT##LTR, OP##LE##LTR, OP##AL##LTR,  
-
-#define COND_INSTR_S(OP) COND_INSTR(OP) OP##S, OP##EQS, OP##NES, OP##CSS, OP##CCS, OP##MIS, OP##PLS, OP##HSS, OP##NVS, OP##LOS, OP##VSS, OP##VCS, OP##HIS, OP##LSS, OP##GES, OP##LTS, OP##GTS, OP##LES, OP##ALS,
-#define COND_INSTR_B(OP) OP##B, OP##EQB, OP##NEB, OP##CSB, OP##CCB, OP##MIB, OP##PLB, OP##HSB, OP##NVB, OP##LOB, OP##VSB, OP##VCB, OP##HIB, OP##LSB, OP##GEB, OP##LTB, OP##GTB, OP##LEB, OP##ALB,
-#define COND_INSTR_T(OP) OP##T, OP##EQT, OP##NET, OP##CST, OP##CCT, OP##MIT, OP##PLT, OP##HST, OP##NVT, OP##LOT, OP##VST, OP##VCT, OP##HIT, OP##LST, OP##GET, OP##LTT, OP##GTT, OP##LET, OP##ALT,
-#define COND_INSTR_BT(OP) COND_INSTR(OP) COND_INSTR_B(OP) COND_INSTR_T(OP) OP##BT, OP##EQBT, OP##NEBT, OP##CSBT, OP##CCBT, OP##MIBT, OP##PLBT, OP##HSBT, OP##NVBT, OP##LOBT, OP##VSBT, OP##VCBT, OP##HIBT, OP##LSBT, OP##GEBT, OP##LTBT, OP##GTBT, OP##LEBT, OP##ALBT,
 #define X(OP) OP,
             TOKENS
 #undef X
-#undef COND_INSTR_S
-#undef COND_INSTR_B
-#undef COND_INSTR_T
-#undef COND_INSTR_BT
-#undef COND_INSTR
-#undef COND_INSTR_
         };
 
         inline std::ostream &operator<<(std::ostream &os, const Token &c)
         {
             switch (c)
             {
-#define COND_INSTR(OP) \
-    case Token::OP: return os << #OP; \
-    case Token::OP##EQ: return os << #OP "EQ"; \
-    case Token::OP##NE: return os << #OP "NE"; \
-    case Token::OP##CS: return os << #OP "CS"; \
-    case Token::OP##CC: return os << #OP "CC"; \
-    case Token::OP##MI: return os << #OP "MI"; \
-    case Token::OP##PL: return os << #OP "PL"; \
-    case Token::OP##HS: return os << #OP "HS"; \
-    case Token::OP##NV: return os << #OP "NV"; \
-    case Token::OP##LO: return os << #OP "LO"; \
-    case Token::OP##VS: return os << #OP "VS"; \
-    case Token::OP##VC: return os << #OP "VC"; \
-    case Token::OP##HI: return os << #OP "HI"; \
-    case Token::OP##LS: return os << #OP "LS"; \
-    case Token::OP##GE: return os << #OP "GE"; \
-    case Token::OP##LT: return os << #OP "LT"; \
-    case Token::OP##GT: return os << #OP "GT"; \
-    case Token::OP##LE: return os << #OP "LE"; \
-    case Token::OP##AL: return os << #OP "AL"; 
-
-#define COND_INSTR_S(OP) \
-    COND_INSTR(OP) \
-    case Token::OP##S: return os << #OP "S"; \
-    case Token::OP##EQS: return os << #OP "EQS"; \
-    case Token::OP##NES: return os << #OP "NES"; \
-    case Token::OP##CSS: return os << #OP "CSS"; \
-    case Token::OP##CCS: return os << #OP "CCS"; \
-    case Token::OP##MIS: return os << #OP "MIS"; \
-    case Token::OP##PLS: return os << #OP "PLS"; \
-    case Token::OP##HSS: return os << #OP "HSS"; \
-    case Token::OP##NVS: return os << #OP "NVS"; \
-    case Token::OP##LOS: return os << #OP "LOS"; \
-    case Token::OP##VSS: return os << #OP "VSS"; \
-    case Token::OP##VCS: return os << #OP "VCS"; \
-    case Token::OP##HIS: return os << #OP "HIS"; \
-    case Token::OP##LSS: return os << #OP "LSS"; \
-    case Token::OP##GES: return os << #OP "GES"; \
-    case Token::OP##LTS: return os << #OP "LTS"; \
-    case Token::OP##GTS: return os << #OP "GTS"; \
-    case Token::OP##LES: return os << #OP "LES"; \
-    case Token::OP##ALS: return os << #OP "ALS";
-
-#define COND_INSTR_B(OP) \
-    case Token::OP##B: return os << #OP "B"; \
-    case Token::OP##EQB: return os << #OP "EQB"; \
-    case Token::OP##NEB: return os << #OP "NEB"; \
-    case Token::OP##CSB: return os << #OP "CSB"; \
-    case Token::OP##CCB: return os << #OP "CCB"; \
-    case Token::OP##MIB: return os << #OP "MIB"; \
-    case Token::OP##PLB: return os << #OP "PLB"; \
-    case Token::OP##HSB: return os << #OP "HSB"; \
-    case Token::OP##NVB: return os << #OP "NVB"; \
-    case Token::OP##LOB: return os << #OP "LOB"; \
-    case Token::OP##VSB: return os << #OP "VSB"; \
-    case Token::OP##VCB: return os << #OP "VCB"; \
-    case Token::OP##HIB: return os << #OP "HIB"; \
-    case Token::OP##LSB: return os << #OP "LSB"; \
-    case Token::OP##GEB: return os << #OP "GEB"; \
-    case Token::OP##LTB: return os << #OP "LTB"; \
-    case Token::OP##GTB: return os << #OP "GTB"; \
-    case Token::OP##LEB: return os << #OP "LEB"; \
-    case Token::OP##ALB: return os << #OP "ALB";
-
-#define COND_INSTR_T(OP) \
-    case Token::OP##T: return os << #OP "T"; \
-    case Token::OP##EQT: return os << #OP "EQT"; \
-    case Token::OP##NET: return os << #OP "NET"; \
-    case Token::OP##CST: return os << #OP "CST"; \
-    case Token::OP##CCT: return os << #OP "CCT"; \
-    case Token::OP##MIT: return os << #OP "MIT"; \
-    case Token::OP##PLT: return os << #OP "PLT"; \
-    case Token::OP##HST: return os << #OP "HST"; \
-    case Token::OP##NVT: return os << #OP "NVT"; \
-    case Token::OP##LOT: return os << #OP "LOT"; \
-    case Token::OP##VST: return os << #OP "VST"; \
-    case Token::OP##VCT: return os << #OP "VCT"; \
-    case Token::OP##HIT: return os << #OP "HIT"; \
-    case Token::OP##LST: return os << #OP "LST"; \
-    case Token::OP##GET: return os << #OP "GET"; \
-    case Token::OP##LTT: return os << #OP "LTT"; \
-    case Token::OP##GTT: return os << #OP "GTT"; \
-    case Token::OP##LET: return os << #OP "LET"; \
-    case Token::OP##ALT: return os << #OP "ALT";
-
-#define COND_INSTR_BT(OP) \
-    case Token::OP##BT: return os << #OP "BT"; \
-    case Token::OP##EQBT: return os << #OP "EQBT"; \
-    case Token::OP##NEBT: return os << #OP "NEBT"; \
-    case Token::OP##CSBT: return os << #OP "CSBT"; \
-    case Token::OP##CCBT: return os << #OP "CCBT"; \
-    case Token::OP##MIBT: return os << #OP "MIBT"; \
-    case Token::OP##PLBT: return os << #OP "PLBT"; \
-    case Token::OP##HSBT: return os << #OP "HSBT"; \
-    case Token::OP##NVBT: return os << #OP "NVBT"; \
-    case Token::OP##LOBT: return os << #OP "LOBT"; \
-    case Token::OP##VSBT: return os << #OP "VSBT"; \
-    case Token::OP##VCBT: return os << #OP "VCBT"; \
-    case Token::OP##HIBT: return os << #OP "HIBT"; \
-    case Token::OP##LSBT: return os << #OP "LSBT"; \
-    case Token::OP##GEBT: return os << #OP "GEBT"; \
-    case Token::OP##LTBT: return os << #OP "LTBT"; \
-    case Token::OP##GTBT: return os << #OP "GTBT"; \
-    case Token::OP##LEBT: return os << #OP "LEBT"; \
-    case Token::OP##ALBT: return os << #OP "ALBT";
-
-#define COND_INSTR_(OP, LTTR) \
-    case Token::OP##LTTR: return os << #OP #LTTR; \
-    case Token::OP##EQ##LTTR: return os << #OP "EQ" #LTTR; \
-    case Token::OP##NE##LTTR: return os << #OP "NE" #LTTR; \
-    case Token::OP##CS##LTTR: return os << #OP "CS" #LTTR; \
-    case Token::OP##CC##LTTR: return os << #OP "CC" #LTTR; \
-    case Token::OP##MI##LTTR: return os << #OP "MI" #LTTR; \
-    case Token::OP##PL##LTTR: return os << #OP "PL" #LTTR; \
-    case Token::OP##HS##LTTR: return os << #OP "HS" #LTTR; \
-    case Token::OP##NV##LTTR: return os << #OP "NV" #LTTR; \
-    case Token::OP##LO##LTTR: return os << #OP "LO" #LTTR; \
-    case Token::OP##VS##LTTR: return os << #OP "VS" #LTTR; \
-    case Token::OP##VC##LTTR: return os << #OP "VC" #LTTR; \
-    case Token::OP##HI##LTTR: return os << #OP "HI" #LTTR; \
-    case Token::OP##LS##LTTR: return os << #OP "LS" #LTTR; \
-    case Token::OP##GE##LTTR: return os << #OP "GE" #LTTR; \
-    case Token::OP##LT##LTTR: return os << #OP "LT" #LTTR; \
-    case Token::OP##GT##LTTR: return os << #OP "GT" #LTTR; \
-    case Token::OP##LE##LTTR: return os << #OP "LE" #LTTR; \
-    case Token::OP##AL##LTTR: return os << #OP "AL" #LTTR;
-
-
-
 #define X(OP)       \
     case Token::OP: \
         return os << #OP;
                 TOKENS
 #undef X
-#undef COND_INSTR_B
-#undef COND_INSTR_T
-#undef COND_INSTR_BT
-#undef COND_INSTR_S
-#undef COND_INSTR
-#undef COND_INSTR_
-
             default:
                 return os << "Unknown";
             }
@@ -270,11 +128,12 @@ namespace ARM
         
 
         inline static std::unordered_map<std::string, Token> directives_map = {
+            {".comm", Token::COMM},
             {".align", Token::ALIGN},
             {".file", Token::FILE},
             {".arch", Token::ARCHITECTURE},
             {".arch_extended", Token::ARCHITECTURE_EXTENDED},
-            {".text", Token::TEXT},
+            {".text", Token::TEXT_SECTION},
             {".cpu", Token::CPU},
             {".include", Token::INCLUDE_ASM_FILE},
             {".global", Token::GLOBAL},
@@ -313,7 +172,11 @@ namespace ARM
             {".8byte", Token::QUAD},
             {".xword", Token::QUAD},
             {".dc.a", Token::QUAD},
-            {".octa", Token::OCTA}
+            {".octa", Token::OCTA},
+            {".note", Token::NOTE},
+            {".GNU-stack", Token::GNU_STACK},
+            {".rel", Token::REL},
+            {".local", Token::LOCAL},
         };
             
         inline static std::unordered_map<char, Token> symbols_map = {
@@ -328,36 +191,9 @@ namespace ARM
             {':', Token::COLON},
         };
 
-        inline static std::unordered_map<std::string, Token> branch_map = {
-            {"b", Token::B},
-            {"bl", Token::BL},
-            {"br", Token::BR},
-            {"blr", Token::BLR},
-            {"bx", Token::BX},
-            {"blx", Token::BLX},
-            {"bxj", Token::BXJ},
-            {"beq", Token::BEQ},
-            {"bne", Token::BNE},
-            {"blt", Token::BLT},
-            {"bgt", Token::BGT},
-            {"ble", Token::BLE},
-            {"bge", Token::BGE},
-            {"blxj", Token::BLXJ},
-            {"bkpt", Token::BKPT},
-            {"svc", Token::SVC},
-            {"hvc", Token::HVC},
-            {"smc", Token::SMC},
-            {"udf", Token::UDF},
-            {"cbz", Token::CBZ},
-            {"cbnz", Token::CBNZ},
-            {"tbnz", Token::TBNZ}};
+        inline static std::unordered_map<std::string, Token> branch_map = {};
 
         inline static std::unordered_map<std::string, Token> shift_ops_map = {
-            {"lsl", Token::LSL},
-            {"lsr", Token::LSR},
-            {"asr", Token::ASR},
-            {"ror", Token::ROR},
-            {"rxx", Token::RRX}
 
         };
 
@@ -397,409 +233,54 @@ namespace ARM
 
         inline static std::unordered_map<std::string, Token> register_map = {
             /* TODO DEFINE ALL THE REGISTERS */
-            {"sp", Token::SP},
-            {"zr", Token::XZR},
-            {"wzr", Token::WZR},
-            {"xzr", Token::XZR},
-            {"pc", Token::PC},
-            {"elr", Token::ELR},
-            {"elr_el1", Token::ELR_EL1},
-            {"elr_el2", Token::ELR_EL2},
-            {"elr_el3", Token::ELR_EL3},
-            {"spsr_el1", Token::SPSR_EL1},
-            {"spsr_el2", Token::SPSR_EL2},
-            {"spsr_el3", Token::SPSR_EL3},
-            {"spsr", Token::SPSR},
-            {"fp", Token::FP},
-            {"lr", Token::LR},
         };
 
         // Define a map of all possible ARMV8 instructions
         inline static std::unordered_map<std::string, Token> arithmetic_instructions_map = {            
-            {"add", Token::ADD},
-            {"adds", Token::ADDS},
-            {"addeq", Token::ADDEQ},
-            {"addne", Token::ADDNE},
-            {"addcs", Token::ADDCS},
-            {"addhs", Token::ADDHS},
-            {"addcc", Token::ADDCC},
-            {"addlo", Token::ADDLO},
-            {"addmi", Token::ADDMI},
-            {"addpl", Token::ADDPL},
-            {"addvs", Token::ADDVS},
-            {"addvc", Token::ADDVC},
-            {"addhi", Token::ADDHI},
-            {"addls", Token::ADDLS},
-            {"addge", Token::ADDGE},
-            {"addlt", Token::ADDLT},
-            {"addgt", Token::ADDGT},
-            {"addle", Token::ADDLE},
-            {"addal", Token::ADDAL},
-            {"addnv", Token::ADDNV},
-            {"addeqs", Token::ADDEQS},
-            {"addnes", Token::ADDNES},
-            {"addcss", Token::ADDCSS},
-            {"addhss", Token::ADDHSS},
-            {"addccs", Token::ADDCCS},
-            {"addlos", Token::ADDLOS},
-            {"addmis", Token::ADDMIS},
-            {"addpls", Token::ADDPLS},
-            {"addvss", Token::ADDVSS},
-            {"addvcs", Token::ADDVCS},
-            {"addhis", Token::ADDHIS},
-            {"addlss", Token::ADDLSS},
-            {"addges", Token::ADDGES},
-            {"addlts", Token::ADDLTS},
-            {"addgts", Token::ADDGTS},
-            {"addles", Token::ADDLES},
-            {"addals", Token::ADDALS},
-            {"addnvs", Token::ADDNVS},
-            {"adc", Token::ADC},
-            {"adcs", Token::ADCS},
-            {"adceq", Token::ADCEQ},
-            {"adcne", Token::ADCNE},
-            {"adccs", Token::ADCCS},
-            {"adchs", Token::ADCHS},
-            {"adccc", Token::ADCCC},
-            {"adclo", Token::ADCLO},
-            {"adcmi", Token::ADCMI},
-            {"adcpl", Token::ADCPL},
-            {"adcvs", Token::ADCVS},
-            {"adcvc", Token::ADCVC},
-            {"adchi", Token::ADCHI},
-            {"adcls", Token::ADCLS},
-            {"adcge", Token::ADCGE},
-            {"adclt", Token::ADCLT},
-            {"adcgt", Token::ADCGT},
-            {"adcle", Token::ADCLE},
-            {"adcal", Token::ADCAL},
-            {"adcnv", Token::ADCNV},
-            {"adceqs", Token::ADCEQS},
-            {"adcnes", Token::ADCNES},
-            {"adccss", Token::ADCCSS},
-            {"adchss", Token::ADCHSS},
-            {"adcccs", Token::ADCCCS},
-            {"adclos", Token::ADCLOS},
-            {"adcmis", Token::ADCMIS},
-            {"adcpls", Token::ADCPLS},
-            {"adcvss", Token::ADCVSS},
-            {"adcvcs", Token::ADCVCS},
-            {"adchis", Token::ADCHIS},
-            {"adclss", Token::ADCLSS},
-            {"adcges", Token::ADCGES},
-            {"adclts", Token::ADCLTS},
-            {"adcgts", Token::ADCGTS},
-            {"adcles", Token::ADCLES},
-            {"adcals", Token::ADCALS},
-            {"adcnvs", Token::ADCNVS},
-            {"sub", Token::SUB},
-            {"subs", Token::SUBS},
-            {"subeq", Token::SUBEQ},
-            {"subne", Token::SUBNE},
-            {"subcs", Token::SUBCS},
-            {"subhs", Token::SUBHS},
-            {"subcc", Token::SUBCC},
-            {"sublo", Token::SUBLO},
-            {"submi", Token::SUBMI},
-            {"subpl", Token::SUBPL},
-            {"subvs", Token::SUBVS},
-            {"subvc", Token::SUBVC},
-            {"subhi", Token::SUBHI},
-            {"subls", Token::SUBLS},
-            {"subge", Token::SUBGE},
-            {"sublt", Token::SUBLT},
-            {"subgt", Token::SUBGT},
-            {"suble", Token::SUBLE},
-            {"subal", Token::SUBAL},
-            {"subnv", Token::SUBNV},
-            {"subeqs", Token::SUBEQS},
-            {"subnes", Token::SUBNES},
-            {"subcss", Token::SUBCSS},
-            {"subhss", Token::SUBHSS},
-            {"subccs", Token::SUBCCS},
-            {"sublos", Token::SUBLOS},
-            {"submis", Token::SUBMIS},
-            {"subpls", Token::SUBPLS},
-            {"subvss", Token::SUBVSS},
-            {"subvcs", Token::SUBVCS},
-            {"subhis", Token::SUBHIS},
-            {"sublss", Token::SUBLSS},
-            {"subges", Token::SUBGES},
-            {"sublts", Token::SUBLTS},
-            {"subgts", Token::SUBGTS},
-            {"subles", Token::SUBLES},
-            {"subals", Token::SUBALS},
-            {"subnvs", Token::SUBNVS},
-            {"sbc", Token::SBC},
-            {"sbcs", Token::SBCS},
-            {"sbceq", Token::SBCEQ},
-            {"sbcne", Token::SBCNE},
-            {"sbccs", Token::SBCCS},
-            {"sbchs", Token::SBCHS},
-            {"sbccc", Token::SBCCC},
-            {"sbclo", Token::SBCLO},
-            {"sbcmi", Token::SBCMI},
-            {"sbcpl", Token::SBCPL},
-            {"sbcvs", Token::SBCVS},
-            {"sbcvc", Token::SBCVC},
-            {"sbchi", Token::SBCHI},
-            {"sbcls", Token::SBCLS},
-            {"sbcge", Token::SBCGE},
-            {"sbclt", Token::SBCLT},
-            {"sbcgt", Token::SBCGT},
-            {"sbcle", Token::SBCLE},
-            {"sbcal", Token::SBCAL},
-            {"sbcnv", Token::SBCNV},
-            {"sbceqs", Token::SBCEQS},
-            {"sbcnes", Token::SBCNES},
-            {"sbccss", Token::SBCCSS},
-            {"sbchss", Token::SBCHSS},
-            {"sbcccs", Token::SBCCCS},
-            {"sbclos", Token::SBCLOS},
-            {"sbcmis", Token::SBCMIS},
-            {"sbcpls", Token::SBCPLS},
-            {"sbcvss", Token::SBCVSS},
-            {"sbcvcs", Token::SBCVCS},
-            {"sbchis", Token::SBCHIS},
-            {"sbclss", Token::SBCLSS},
-            {"sbcges", Token::SBCGES},
-            {"sbclts", Token::SBCLTS},
-            {"sbcgts", Token::SBCGTS},
-            {"sbcles", Token::SBCLES},
-            {"sbcals", Token::SBCALS},
-            {"sbcnvs", Token::SBCNVS},
-            {"rsb", Token::RSB},
-            {"rsbs", Token::RSBS},
-            {"rsbeq", Token::RSBEQ},
-            {"rsbne", Token::RSBNE},
-            {"rsbcs", Token::RSBCS},
-            {"rsbhs", Token::RSBHS},
-            {"rsbcc", Token::RSBCC},
-            {"rsblo", Token::RSBLO},
-            {"rsbmi", Token::RSBMI},
-            {"rsbpl", Token::RSBPL},
-            {"rsbvs", Token::RSBVS},
-            {"rsbvc", Token::RSBVC},
-            {"rsbhi", Token::RSBHI},
-            {"rsbls", Token::RSBLS},
-            {"rsbge", Token::RSBGE},
-            {"rsblt", Token::RSBLT},
-            {"rsbgt", Token::RSBGT},
-            {"rsble", Token::RSBLE},
-            {"rsbal", Token::RSBAL},
-            {"rsbnv", Token::RSBNV},
-            {"rsbeqs", Token::RSBEQS},
-            {"rsbnes", Token::RSBNES},
-            {"rsbcss", Token::RSBCSS},
-            {"rsbhss", Token::RSBHSS},
-            {"rsbccs", Token::RSBCCS},
-            {"rsblos", Token::RSBLOS},
-            {"rsbmis", Token::RSBMIS},
-            {"rsbpls", Token::RSBPLS},
-            {"rsbvss", Token::RSBVSS},
-            {"rsbvcs", Token::RSBVCS},
-            {"rsbhis", Token::RSBHIS},
-            {"rsblss", Token::RSBLSS},
-            {"rsbges", Token::RSBGES},
-            {"rsblts", Token::RSBLTS},
-            {"rsbgts", Token::RSBGTS},
-            {"rsbles", Token::RSBLES},
-            {"rsbals", Token::RSBALS},
-            {"rsbnvs", Token::RSBNVS},
-            {"rsc", Token::RSC},
-            {"rscs", Token::RSCS},
-            {"rsceq", Token::RSCEQ},
-            {"rscne", Token::RSCNE},
-            {"rsccs", Token::RSCCS},
-            {"rschs", Token::RSCHS},
-            {"rsccc", Token::RSCCC},
-            {"rsclo", Token::RSCLO},
-            {"rscmi", Token::RSCMI},
-            {"rscpl", Token::RSCPL},
-            {"rscvs", Token::RSCVS},
-            {"rscvc", Token::RSCVC},
-            {"rschi", Token::RSCHI},
-            {"rscls", Token::RSCLS},
-            {"rscge", Token::RSCGE},
-            {"rsclt", Token::RSCLT},
-            {"rscgt", Token::RSCGT},
-            {"rscle", Token::RSCLE},
-            {"rscal", Token::RSCAL},
-            {"rscnv", Token::RSCNV},
-            {"rsceqs", Token::RSCEQS},
-            {"rscnes", Token::RSCNES},
-            {"rsccss", Token::RSCCSS},
-            {"rschss", Token::RSCHSS},
-            {"rscccs", Token::RSCCCS},
-            {"rsclos", Token::RSCLOS},
-            {"rscmis", Token::RSCMIS},
-            {"rscpls", Token::RSCPLS},
-            {"rscvss", Token::RSCVSS},
-            {"rscvcs", Token::RSCVCS},
-            {"rschis", Token::RSCHIS},
-            {"rsclss", Token::RSCLSS},
-            {"rscges", Token::RSCGES},
-            {"rsclts", Token::RSCLTS},
-            {"rscgts", Token::RSCGTS},
-            {"rscles", Token::RSCLES},
-            {"rscals", Token::RSCALS},
-            {"rscnvs", Token::RSCNVS},
+
         };
 
-
-        inline static std::unordered_map<std::string, Token> logical_instructions_map = {
-            {"and", Token::AND},
-            {"ands", Token::ANDS},
-            {"andeq", Token::ANDEQ},
-            {"andne", Token::ANDNE},
-            {"andcs", Token::ANDCS},
-            {"andhs", Token::ANDHS},
-            {"andcc", Token::ANDCC},
-            {"andlo", Token::ANDLO},
-            {"andmi", Token::ANDMI},
-            {"andpl", Token::ANDPL},
-            {"andvs", Token::ANDVS},
-            {"andvc", Token::ANDVC},
-            {"andhi", Token::ANDHI},
-            {"andls", Token::ANDLS},
-            {"andge", Token::ANDGE},
-            {"andlt", Token::ANDLT},
-            {"andgt", Token::ANDGT},
-            {"andle", Token::ANDLE},
-            {"andal", Token::ANDAL},
-            {"andnv", Token::ANDNV},
-            {"andeqs", Token::ANDEQS},
-            {"andnes", Token::ANDNES},
-            {"andcss", Token::ANDCSS},
-            {"andhss", Token::ANDHSS},
-            {"andccs", Token::ANDCCS},
-            {"andlos", Token::ANDLOS},
-            {"andmis", Token::ANDMIS},
-            {"andpls", Token::ANDPLS},
-            {"andvss", Token::ANDVSS},
-            {"andvcs", Token::ANDVCS},
-            {"andhis", Token::ANDHIS},
-            {"andlss", Token::ANDLSS},
-            {"andges", Token::ANDGES},
-            {"andlts", Token::ANDLTS},
-            {"andgts", Token::ANDGTS},
-            {"andles", Token::ANDLES},
-            {"andals", Token::ANDALS},
-            {"andnvs", Token::ANDNVS},
-            {"eor", Token::EOR},
-            {"eors", Token::EORS},
-            {"eoreq", Token::EOREQ},
-            {"eorne", Token::EORNE},
-            {"eorcs", Token::EORCS},
-            {"eorhs", Token::EORHS},
-            {"eorcc", Token::EORCC},
-            {"eorlo", Token::EORLO},
-            {"eormi", Token::EORMI},
-            {"eorpl", Token::EORPL},
-            {"eorvs", Token::EORVS},
-            {"eorvc", Token::EORVC},
-            {"eorhi", Token::EORHI},
-            {"eorls", Token::EORLS},
-            {"eorge", Token::EORGE},
-            {"eorlt", Token::EORLT},
-            {"eorgt", Token::EORGT},
-            {"eorle", Token::EORLE},
-            {"eoral", Token::EORAL},
-            {"eornv", Token::EORNV},
-            {"eoreqs", Token::EOREQS},
-            {"eornes", Token::EORNES},
-            {"eorcss", Token::EORCSS},
-            {"eorhss", Token::EORHSS},
-            {"eorccs", Token::EORCCS},
-            {"eorlos", Token::EORLOS},
-            {"eormis", Token::EORMIS},
-            {"eorpls", Token::EORPLS},
-            {"eorvss", Token::EORVSS},
-            {"eorvcs", Token::EORVCS},
-            {"eorhis", Token::EORHIS},
-            {"eorlss", Token::EORLSS},
-            {"eorges", Token::EORGES},
-            {"eorlts", Token::EORLTS},
-            {"eorgts", Token::EORGTS},
-            {"eorles", Token::EORLES},
-            {"eorals", Token::EORALS},
-            {"eornvs", Token::EORNVS},
-            {"orr", Token::ORR},
-            {"orrs", Token::ORRS},
-            {"orreq", Token::ORREQ},
-            {"orrne", Token::ORRNE},
-            {"orrcs", Token::ORRCS},
-            {"orrhs", Token::ORRHS},
-            {"orrcc", Token::ORRCC},
-            {"orrlo", Token::ORRLO},
-            {"orrmi", Token::ORRMI},
-            {"orrpl", Token::ORRPL},
-            {"orrvs", Token::ORRVS},
-            {"orrvc", Token::ORRVC},
-            {"orrhi", Token::ORRHI},
-            {"orrls", Token::ORRLS},
-            {"orrge", Token::ORRGE},
-            {"orrlt", Token::ORRLT},
-            {"orrgt", Token::ORRGT},
-            {"orrle", Token::ORRLE},
-            {"orral", Token::ORRAL},
-            {"orrnv", Token::ORRNV},
-            {"orreqs", Token::ORREQS},
-            {"orrnes", Token::ORRNES},
-            {"orrcss", Token::ORRCSS},
-            {"orrhss", Token::ORRHSS},
-            {"orrccs", Token::ORRCCS},
-            {"orrlos", Token::ORRLOS},
-            {"orrmis", Token::ORRMIS},
-            {"orrpls", Token::ORRPLS},
-            {"orrvss", Token::ORRVSS},
-            {"orrvcs", Token::ORRVCS},
-            {"orrhis", Token::ORRHIS},
-            {"orrlss", Token::ORRLSS},
-            {"orrges", Token::ORRGES},
-            {"orrlts", Token::ORRLTS},
-            {"orrgts", Token::ORRGTS},
-            {"orrles", Token::ORRLES},
-            {"orrals", Token::ORRALS},
-            {"orrnvs", Token::ORRNVS},
-            {"bic", Token::BIC},
-            {"bics", Token::BICS},
-            {"biceq", Token::BICEQ},
-            {"bicne", Token::BICNE},
-            {"biccs", Token::BICCS},
-            {"bichs", Token::BICHS},
-            {"biccc", Token::BICCC},
-            {"biclo", Token::BICLO},
-            {"bicmi", Token::BICMI},
-            {"bicpl", Token::BICPL},
-            {"bicvs", Token::BICVS},
-            {"bicvc", Token::BICVC},
-            {"bichi", Token::BICHI},
-            {"bicls", Token::BICLS},
-            {"bicge", Token::BICGE},
-            {"biclt", Token::BICLT},
-            {"bicgt", Token::BICGT},
-            {"bicle", Token::BICLE},
-            {"bical", Token::BICAL},
-            {"bicnv", Token::BICNV},
-            {"biceqs", Token::BICEQS},
-            {"bicnes", Token::BICNES},
-            {"biccss", Token::BICCSS},
-            {"bichss", Token::BICHSS},
-            {"bicccs", Token::BICCCS},
-            {"biclos", Token::BICLOS},
-            {"bicmis", Token::BICMIS},
-            {"bicpls", Token::BICPLS},
-            {"bicvss", Token::BICVSS},
-            {"bicvcs", Token::BICVCS},
-            {"bichis", Token::BICHIS},
-            {"biclss", Token::BICLSS},
-            {"bicges", Token::BICGES},
-            {"biclts", Token::BICLTS},
-            {"bicgts", Token::BICGTS},
-            {"bicles", Token::BICLES},
-            {"bicals", Token::BICALS},
-            {"bicnvs", Token::BICNVS}
+        inline static std::unordered_map<std::string, Token> instructions_map = {
+            {"add", Token::ADD_OPCODE},
+            {"adc", Token::ADD_CARRY_OPCODE},
+            {"sub", Token::SUB_OPCODE},
+            {"sbc", Token::SUB_CARRY_OPCODE},
+            {"rsb", Token::REVERSE_SUB_OPCODE},
+            {"rsc", Token::REVERSE_SUB_CARRY_OPCODE},
+            {"and", Token::AND_OPCODE},
+            {"eor", Token::EXCLUSIVE_OR_OPCODE},
+            {"orr", Token::OR_OPCODE},
+            {"bic", Token::BIT_CLEAR_OPCODE},
+            {"ldr", Token::LOAD_OPCODE},
+            {"str", Token::STORE_OPCODE},
+            {"lsl", Token::SHIFT_OPCODE},
+            {"lsr", Token::SHIFT_OPCODE},
+            {"asr", Token::SHIFT_OPCODE},
+            {"ror", Token::SHIFT_OPCODE},
+            {"rxx", Token::SHIFT_OPCODE},
+            {"b", Token::BRANCH_OPCODE},
+            {"bl", Token::BRANCH_OPCODE},
+            {"br", Token::BRANCH_OPCODE},
+            {"blr", Token::BRANCH_OPCODE},
+            {"bx", Token::BRANCH_OPCODE},
+            {"blx", Token::BRANCH_OPCODE},
+            {"bxj", Token::BRANCH_OPCODE},
+            {"beq", Token::BRANCH_OPCODE},
+            {"bne", Token::BRANCH_OPCODE},
+            {"blt", Token::BRANCH_OPCODE},
+            {"bgt", Token::BRANCH_OPCODE},
+            {"ble", Token::BRANCH_OPCODE},
+            {"bge", Token::BRANCH_OPCODE},
+            {"blxj", Token::BRANCH_OPCODE},
+            {"bkpt", Token::BRANCH_OPCODE},
+            {"svc", Token::BRANCH_OPCODE},
+            {"hvc", Token::BRANCH_OPCODE},
+            {"smc", Token::BRANCH_OPCODE},
+            {"udf", Token::BRANCH_OPCODE},
+            {"cbz", Token::BRANCH_OPCODE},
+            {"cbnz", Token::BRANCH_OPCODE},
+            {"tbnz", Token::BRANCH_OPCODE},
+            {"ret", Token::RET},
         };
 
         inline static std::unordered_map<std::string, Token> conditional_map = {
@@ -824,183 +305,6 @@ namespace ARM
         };
 
         inline static std::unordered_map<std::string, Token> mem_instruction_map = {
-            {"adrp", Token::ADRP},
-            {"adr", Token::ADR},
-            {"adrl", Token::ADRL},
-            {"ldr", Token::LDR},
-            {"ldrb", Token::LDRB},
-            {"ldrh", Token::LDRH},
-            {"ldrt", Token::LDRT},
-            {"ldrbt", Token::LDRBT},
-            {"ldreq", Token::LDREQ},
-            {"ldrne", Token::LDRNE},
-            {"ldrcs", Token::LDRCS},
-            {"ldrhs", Token::LDRHS},
-            {"ldrcc", Token::LDRCC},
-            {"ldrlo", Token::LDRLO},
-            {"ldrmi", Token::LDRMI},
-            {"ldrpl", Token::LDRPL},
-            {"ldrvs", Token::LDRVS},
-            {"ldrvc", Token::LDRVC},
-            {"ldrhi", Token::LDRHI},
-            {"ldrls", Token::LDRLS},
-            {"ldrge", Token::LDRGE},
-            {"ldrlt", Token::LDRLT},
-            {"ldrgt", Token::LDRGT},
-            {"ldrle", Token::LDRLE},
-            {"ldral", Token::LDRAL},
-            {"ldrnv", Token::LDRNV},
-            {"ldreqb", Token::LDREQB},
-            {"ldrneb", Token::LDRNEB},
-            {"ldrcsb", Token::LDRCSB},
-            {"ldrhsb", Token::LDRHSB},
-            {"ldrccb", Token::LDRCCB},
-            {"ldrlob", Token::LDRLOB},
-            {"ldrhib", Token::LDRHIB},
-            {"ldrlsb", Token::LDRLSB},
-            {"ldrgeb", Token::LDRGEB},
-            {"ldrltb", Token::LDRLTB},
-            {"ldrgtb", Token::LDRGTB},
-            {"ldrleb", Token::LDRLEB},
-            {"ldralb", Token::LDRALB},
-            {"ldrnvb", Token::LDRNVB},
-            {"ldreqh", Token::LDREQH},
-            {"ldrneh", Token::LDRNEH},
-            {"ldrcsh", Token::LDRCSH},
-            {"ldrhsh", Token::LDRHSH},
-            {"ldrcch", Token::LDRCCH},
-            {"ldrloh", Token::LDRLOH},
-            {"ldrmih", Token::LDRMIH},
-            {"ldrplh", Token::LDRPLH},
-            {"ldrvsh", Token::LDRVSH},
-            {"ldrvch", Token::LDRVCH},
-            {"ldrhih", Token::LDRHIH},
-            {"ldrlsh", Token::LDRLSH},
-            {"ldrgeh", Token::LDRGEH},
-            {"ldrlth", Token::LDRLTH},
-            {"ldrgth", Token::LDRGTH},
-            {"ldrleh", Token::LDRLEH},
-            {"ldralh", Token::LDRALH},
-            {"ldrnvh", Token::LDRNVH},
-            {"ldreqt", Token::LDREQT},
-            {"ldrnet", Token::LDRNET},
-            {"ldrcst", Token::LDRCST},
-            {"ldrhst", Token::LDRHST},
-            {"ldrcct", Token::LDRCCT},
-            {"ldrlot", Token::LDRLOT},
-            {"ldrmit", Token::LDRMIT},
-            {"ldrplt", Token::LDRPLT},
-            {"ldrvst", Token::LDRVST},
-            {"ldrvct", Token::LDRVCT},
-            {"ldrhit", Token::LDRHIT},
-            {"ldrlst", Token::LDRLST},
-            {"ldrget", Token::LDRGET},
-            {"ldrltt", Token::LDRLTT},
-            {"ldrgtt", Token::LDRGTT},
-            {"ldrlet", Token::LDRLET},
-            {"ldralt", Token::LDRALT},
-            {"ldrnvt", Token::LDRNVT},
-            {"ldreqbt", Token::LDREQBT},
-            {"ldrnebt", Token::LDRNEBT},
-            {"ldrcsbt", Token::LDRCSBT},
-            {"ldrhsbt", Token::LDRHSBT},
-            {"ldrccbt", Token::LDRCCBT},
-            {"ldrlobt", Token::LDRLOBT},
-            {"ldrhibt", Token::LDRHIBT},
-            {"ldrlsbt", Token::LDRLSBT},
-            {"ldrgebt", Token::LDRGEBT},
-            {"ldrltbt", Token::LDRLTBT},
-            {"ldrgtbt", Token::LDRGTBT},
-            {"ldrlebt", Token::LDRLEBT},
-            {"ldralbt", Token::LDRALBT},
-            {"ldrnvbt", Token::LDRNVBT},
-            {"str", Token::STR},
-            {"strb", Token::STRB},
-            {"strh", Token::STRH},
-            {"strt", Token::STRT},
-            {"strbt", Token::STRBT},
-            {"streq", Token::STREQ},
-            {"strne", Token::STRNE},
-            {"strcs", Token::STRCS},
-            {"strhs", Token::STRHS},
-            {"strcc", Token::STRCC},
-            {"strlo", Token::STRLO},
-            {"strmi", Token::STRMI},
-            {"strpl", Token::STRPL},
-            {"strvs", Token::STRVS},
-            {"strvc", Token::STRVC},
-            {"strhi", Token::STRHI},
-            {"strls", Token::STRLS},
-            {"strge", Token::STRGE},
-            {"strlt", Token::STRLT},
-            {"strgt", Token::STRGT},
-            {"strle", Token::STRLE},
-            {"stral", Token::STRAL},
-            {"strnv", Token::STRNV},
-            {"streqb", Token::STREQB},
-            {"strneb", Token::STRNEB},
-            {"strcsb", Token::STRCSB},
-            {"strhsb", Token::STRHSB},
-            {"strccb", Token::STRCCB},
-            {"strlob", Token::STRLOB},
-            {"strhib", Token::STRHIB},
-            {"strlsb", Token::STRLSB},
-            {"strgeb", Token::STRGEB},
-            {"strltb", Token::STRLTB},
-            {"strgtb", Token::STRGTB},
-            {"strleb", Token::STRLEB},
-            {"stralb", Token::STRALB},
-            {"strnvb", Token::STRNVB},
-            {"streqh", Token::STREQH},
-            {"strneh", Token::STRNEH},
-            {"strcsh", Token::STRCSH},
-            {"strhsh", Token::STRHSH},
-            {"strcch", Token::STRCCH},
-            {"strloh", Token::STRLOH},
-            {"strmih", Token::STRMIH},
-            {"strplh", Token::STRPLH},
-            {"strvsh", Token::STRVSH},
-            {"strvch", Token::STRVCH},
-            {"strhih", Token::STRHIH},
-            {"strlsh", Token::STRLSH},
-            {"strgeh", Token::STRGEH},
-            {"strlth", Token::STRLTH},
-            {"strgth", Token::STRGTH},
-            {"strleh", Token::STRLEH},
-            {"stralh", Token::STRALH},
-            {"strnvh", Token::STRNVH},
-            {"streqt", Token::STREQT},
-            {"strnet", Token::STRNET},
-            {"strcst", Token::STRCST},
-            {"strhst", Token::STRHST},
-            {"strcct", Token::STRCCT},
-            {"strlot", Token::STRLOT},
-            {"strmit", Token::STRMIT},
-            {"strplt", Token::STRPLT},
-            {"strvst", Token::STRVST},
-            {"strvct", Token::STRVCT},
-            {"strhit", Token::STRHIT},
-            {"strlst", Token::STRLST},
-            {"strget", Token::STRGET},
-            {"strltt", Token::STRLTT},
-            {"strgtt", Token::STRGTT},
-            {"strlet", Token::STRLET},
-            {"stralt", Token::STRALT},
-            {"strnvt", Token::STRNVT},
-            {"streqbt", Token::STREQBT},
-            {"strnebt", Token::STRNEBT},
-            {"strcsbt", Token::STRCSBT},
-            {"strhsbt", Token::STRHSBT},
-            {"strccbt", Token::STRCCBT},
-            {"strlobt", Token::STRLOBT},
-            {"strhibt", Token::STRHIBT},
-            {"strlsbt", Token::STRLSBT},
-            {"strgebt", Token::STRGEBT},
-            {"strltbt", Token::STRLTBT},
-            {"strgtbt", Token::STRGTBT},
-            {"strlebt", Token::STRLEBT},
-            {"stralbt", Token::STRALBT},
-            {"strnvbt", Token::STRNVBT},
         };
 
         inline static std::unordered_map<std::string, Token> cfi_map = {
@@ -1030,6 +334,21 @@ namespace ARM
             {".cfi_debug_frame", Token::CFI_DEBUG_FRAME}};
 
         inline static std::unordered_map<std::string, Token> registers_map = {
+            {"sp", Token::SP},
+            {"zr", Token::XZR},
+            {"wzr", Token::WZR},
+            {"xzr", Token::XZR},
+            {"pc", Token::PC},
+            {"elr", Token::ELR},
+            {"elr_el1", Token::ELR_EL1},
+            {"elr_el2", Token::ELR_EL2},
+            {"elr_el3", Token::ELR_EL3},
+            {"spsr_el1", Token::SPSR_EL1},
+            {"spsr_el2", Token::SPSR_EL2},
+            {"spsr_el3", Token::SPSR_EL3},
+            {"spsr", Token::SPSR},
+            {"fp", Token::FP},
+            {"lr", Token::LR},
             {"w0", Token::W0},
             {"w1", Token::W1},
             {"w2", Token::W2},

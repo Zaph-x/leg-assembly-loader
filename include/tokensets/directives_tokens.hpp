@@ -126,7 +126,9 @@
     X(SIZE) \
     X(FILE)\
     X(TYPE)\
-    X(TEXT)\
-    X(IDENTIFIER) \
+    X(TEXT)        \
+    X(COMM)        \
+    X(IDENTIFIER)  \
+    X(NOTE)
 
 #endif
