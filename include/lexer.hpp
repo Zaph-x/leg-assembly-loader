@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 #include "token.hpp"
+#include "vector_stream.hpp"
 #include <map>
 
 namespace ARM::Lexer{

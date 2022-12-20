@@ -3,7 +3,7 @@ file(COPY test_files DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(convert_test convert_test.cpp ../src/converter/converter.cpp)
 add_executable(lexer_test lexer_test.cpp ../src/lexer.cpp)
-add_executable(parser_test parser_test.cpp ../src/parser.cpp ../src/converter/converter.cpp)
+add_executable(parser_test parser_test.cpp ../src/parser.cpp ../src/lexer.cpp ../include/parser.hpp ../src/converter/converter.cpp)
 target_link_libraries(convert_test PRIVATE doctest)
 target_link_libraries(lexer_test PRIVATE doctest)
 target_link_libraries(parser_test PRIVATE doctest)

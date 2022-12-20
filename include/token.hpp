@@ -19,8 +19,7 @@
 
 namespace ARM
 {
-    namespace Tokens
-    {
+    namespace Tokens {
 
 #define SUB_DIRECTIVES \
     X(REL)             \
@@ -104,91 +103,87 @@ namespace ARM
     X(LABEL)        \
     X(ERROR)
 
-        enum class Token
-        {
+        enum class Token {
 #define X(OP) OP,
             TOKENS
 #undef X
         };
 
-        inline std::ostream &operator<<(std::ostream &os, const Token &c)
-        {
-            switch (c)
-            {
+        inline std::ostream &operator<<(std::ostream &os, const Token &c) {
+            switch (c) {
 #define X(OP)       \
     case Token::OP: \
         return os << #OP;
                 TOKENS
 #undef X
-            default:
-                return os << "Unknown";
+                default:
+                    return os << "Unknown";
             }
         };
 
-        
 
         inline static std::unordered_map<std::string, Token> directives_map = {
-            {".comm", Token::COMM},
-            {".align", Token::ALIGN},
-            {".file", Token::FILE},
-            {".arch", Token::ARCHITECTURE},
-            {".arch_extended", Token::ARCHITECTURE_EXTENDED},
-            {".text", Token::TEXT_SECTION},
-            {".cpu", Token::CPU},
-            {".include", Token::INCLUDE_ASM_FILE},
-            {".global", Token::GLOBAL},
-            {".size", Token::SIZE},
-            {".type", Token::TYPE},
-            {".space", Token::SPACE},
-            {".fill", Token::FILL},
-            {".ident", Token::IDENTIFIER},
-            {".if", Token::IF},
-            {".ifdef", Token::IFDEF},
-            {".ifndef", Token::IFNDEF},
-            {".else", Token::ELSE},
-            {".endif", Token::ENDIF},
-            {".float", Token::FLOAT},
-            {".double", Token::DOUBLE},
-            {".ascii", Token::ASCII},
-            {".asciiz", Token::ASCIIZ},
-            {".string", Token::STRING},
-            {".string8", Token::STRING8},
-            {".string16", Token::STRING16},
-            {".byte", Token::BYTE},
-            {".1byte", Token::BYTE},
-            {".dc.b", Token::BYTE},
-            {".hword", Token::HWORD},
-            {".2byte", Token::HWORD},
-            {".dc", Token::HWORD},
-            {".dc.w", Token::HWORD},
-            {".short", Token::HWORD},
-            {".value", Token::HWORD},
-            {".word", Token::WORD},
-            {".4bytes", Token::WORD},
-            {".long", Token::WORD},
-            {".int", Token::WORD},
-            {".dc.l", Token::WORD},
-            {".quad", Token::QUAD},
-            {".8byte", Token::QUAD},
-            {".xword", Token::QUAD},
-            {".dc.a", Token::QUAD},
-            {".octa", Token::OCTA},
-            {".note", Token::NOTE},
-            {".GNU-stack", Token::GNU_STACK},
-            {".rel", Token::REL},
-            {".local", Token::LOCAL},
+                {".comm",          Token::COMM},
+                {".align",         Token::ALIGN},
+                {".file",          Token::FILE},
+                {".arch",          Token::ARCHITECTURE},
+                {".arch_extended", Token::ARCHITECTURE_EXTENDED},
+                {".text",          Token::TEXT_SECTION},
+                {".cpu",           Token::CPU},
+                {".include",       Token::INCLUDE_ASM_FILE},
+                {".global",        Token::GLOBAL},
+                {".size",          Token::SIZE},
+                {".type",          Token::TYPE},
+                {".space",         Token::SPACE},
+                {".fill",          Token::FILL},
+                {".ident",         Token::IDENTIFIER},
+                {".if",            Token::IF},
+                {".ifdef",         Token::IFDEF},
+                {".ifndef",        Token::IFNDEF},
+                {".else",          Token::ELSE},
+                {".endif",         Token::ENDIF},
+                {".float",         Token::FLOAT},
+                {".double",        Token::DOUBLE},
+                {".ascii",         Token::ASCII},
+                {".asciiz",        Token::ASCIIZ},
+                {".string",        Token::STRING},
+                {".string8",       Token::STRING8},
+                {".string16",      Token::STRING16},
+                {".byte",          Token::BYTE},
+                {".1byte",         Token::BYTE},
+                {".dc.b",          Token::BYTE},
+                {".hword",         Token::HWORD},
+                {".2byte",         Token::HWORD},
+                {".dc",            Token::HWORD},
+                {".dc.w",          Token::HWORD},
+                {".short",         Token::HWORD},
+                {".value",         Token::HWORD},
+                {".word",          Token::WORD},
+                {".4bytes",        Token::WORD},
+                {".long",          Token::WORD},
+                {".int",           Token::WORD},
+                {".dc.l",          Token::WORD},
+                {".quad",          Token::QUAD},
+                {".8byte",         Token::QUAD},
+                {".xword",         Token::QUAD},
+                {".dc.a",          Token::QUAD},
+                {".octa",          Token::OCTA},
+                {".note",          Token::NOTE},
+                {".GNU-stack",     Token::GNU_STACK},
+                {".rel",           Token::REL},
+                {".local",         Token::LOCAL},
         };
-            
+
         inline static std::unordered_map<char, Token> symbols_map = {
-            {EOF, Token::EOF_TOKEN},
-            {'\n', Token::EOL_TOKEN},
-            {'[', Token::L_BRACKET},
-            {']', Token::R_BRACKET},
-            {'-', Token::MINUS_SIGN},
-            {'!', Token::EXCLAMATION},
-            {',', Token::COMMA},
-            {'+', Token::PLUS_SIGN},
-            {':', Token::COLON},
+                {EOF,  Token::EOF_TOKEN},
+                {'\n', Token::EOL_TOKEN},
+                {'[',  Token::L_BRACKET},
+                {']',  Token::R_BRACKET},
+                {'-',  Token::MINUS_SIGN},
+                {'!',  Token::EXCLAMATION},
+                {',',  Token::COMMA},
+                {'+',  Token::PLUS_SIGN},
+                {':',  Token::COLON},
         };
 
         inline static std::unordered_map<std::string, Token> branch_map = {};
@@ -198,47 +193,41 @@ namespace ARM
         };
 
         inline static std::unordered_map<char, Token> section_flags_map = {
-            {'a', Token::SHF_ALLOC},
-            {'w', Token::SHF_WRITE},
-            {'y', Token::SHF_ARM_PURECODE},
-            {'x', Token::SHF_EXECINSTR},
-            {'o', Token::SHF_LINK_ORDER},
-            {'M', Token::SHF_MERGE},
-            {'S', Token::SHF_STRINGS},
-            {'T', Token::SHF_TLS},
-            {'G', Token::SHF_GROUP},
-            {'?', Token::INHERIT_PREVIOUS_GROUP_IF_PRESENT}};
+                {'a', Token::SHF_ALLOC},
+                {'w', Token::SHF_WRITE},
+                {'y', Token::SHF_ARM_PURECODE},
+                {'x', Token::SHF_EXECINSTR},
+                {'o', Token::SHF_LINK_ORDER},
+                {'M', Token::SHF_MERGE},
+                {'S', Token::SHF_STRINGS},
+                {'T', Token::SHF_TLS},
+                {'G', Token::SHF_GROUP},
+                {'?', Token::INHERIT_PREVIOUS_GROUP_IF_PRESENT}};
         // .section .data, "ax", @progbits
         inline static std::unordered_map<std::string, Token> section_map = {
-            {".data", Token::DATA_SECTION},
-            {".rodata", Token::RODATA_SECTION},
-            {".text", Token::TEXT_SECTION},
-            {".bss", Token::BSS_SECTION},
-            {".pushsection", Token::PUSHSECTION_SECTION},
-            {".popsection", Token::POPSECTION_SECTION},
-            {".section", Token::SECTION}};
+                {".data",        Token::DATA_SECTION},
+                {".rodata",      Token::RODATA_SECTION},
+                {".text",        Token::TEXT_SECTION},
+                {".bss",         Token::BSS_SECTION},
+                {".pushsection", Token::PUSHSECTION_SECTION},
+                {".popsection",  Token::POPSECTION_SECTION},
+                {".section",     Token::SECTION}};
 
         inline static std::unordered_map<std::string, Token> section_types_map = {
-            {"%progbits", Token::SHT_PROGBITS},
-            {"%nobits", Token::SHT_NOBITS},
-            {"%note", Token::SHT_NOTE},
-            {"%init_array", Token::SHT_INIT_ARRAY},
-            {"%fini_array", Token::SHT_FINI_ARRAY},
-            {"%preinit_array", Token::SHT_PREINIT_ARRAY}};
+                {"%progbits",      Token::SHT_PROGBITS},
+                {"%nobits",        Token::SHT_NOBITS},
+                {"%note",          Token::SHT_NOTE},
+                {"%init_array",    Token::SHT_INIT_ARRAY},
+                {"%fini_array",    Token::SHT_FINI_ARRAY},
+                {"%preinit_array", Token::SHT_PREINIT_ARRAY}
+        };
 
         inline static std::unordered_map<std::string, Token> type_map = {
-            {"%function", Token::FUNCTION},
-            {"%object", Token::OBJECT},
-            {"%tls_object", Token::TLS_OBJECT}};
-
-        inline static std::unordered_map<std::string, Token> register_map = {
-            /* TODO DEFINE ALL THE REGISTERS */
+                {"%function",   Token::FUNCTION},
+                {"%object",     Token::OBJECT},
+                {"%tls_object", Token::TLS_OBJECT}
         };
 
-        // Define a map of all possible ARMV8 instructions
-        inline static std::unordered_map<std::string, Token> arithmetic_instructions_map = {            
-
-        };
 
         inline static std::unordered_map<std::string, Token> instructions_map = {
             {"add", Token::ADD_OPCODE},
@@ -281,6 +270,7 @@ namespace ARM
             {"cbnz", Token::BRANCH_OPCODE},
             {"tbnz", Token::BRANCH_OPCODE},
             {"ret", Token::RET},
+            {"mov", Token::MOVE_INSTRUCTION},
         };
 
         inline static std::unordered_map<std::string, Token> conditional_map = {
@@ -302,9 +292,6 @@ namespace ARM
             {"le", Token::LE},
             {"al", Token::AL},
             {"nv", Token::NV},
-        };
-
-        inline static std::unordered_map<std::string, Token> mem_instruction_map = {
         };
 
         inline static std::unordered_map<std::string, Token> cfi_map = {

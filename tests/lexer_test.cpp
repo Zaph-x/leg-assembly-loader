@@ -8,7 +8,7 @@
 void check_sequence(std::vector<ARM::Lexer::Lexem> lexems, std::vector<ARM::Tokens::Token> tokens) {
     for (int i = 0; i < std::min(lexems.size(), tokens.size()); i++) {
         CHECK_MESSAGE(lexems[i].get_token() == tokens[i], "Index: " << i << " Token: " << \
-        lexems[i].get_token() << " Value: " << lexems[i].get_curr_lexem() << " Expected: " << tokens[i]);
+            lexems[i].get_token() << " Value: " << lexems[i].get_curr_lexem() << " Expected: " << tokens[i]);
     }
 }
 void check_sequence_not_contains(std::vector<ARM::Lexer::Lexem> lexems, ARM::Tokens::Token token) {
@@ -86,6 +86,48 @@ TEST_CASE("Lexer can read large strings and generate lexems") {
             ARM::Tokens::Token::EOF_TOKEN
         });
     }
+    SUBCASE("Lexer can correctly lex instructions in string") {
+        std::string line(R"(.arch armv8-a
+.file "test.s"
+.text
+.global main
+.type main, %function
+main:
+    mov x0, 4660
+    ret)");
+
+        std::stringstream ss(line);
+        ARM::Lexer::Lexer lexer(ss);
+        lexer.run();
+
+        check_sequence(lexer.get_lexems(), {
+            ARM::Tokens::Token::ARCHITECTURE,
+            ARM::Tokens::Token::ARMV8_A,
+            ARM::Tokens::Token::EOL_TOKEN,
+            ARM::Tokens::Token::FILE,
+            ARM::Tokens::Token::RAW_STRING,
+            ARM::Tokens::Token::EOL_TOKEN,
+            ARM::Tokens::Token::TEXT_SECTION,
+            ARM::Tokens::Token::EOL_TOKEN,
+            ARM::Tokens::Token::GLOBAL,
+            ARM::Tokens::Token::IDENTIFIER,
+            ARM::Tokens::Token::EOL_TOKEN,
+            ARM::Tokens::Token::TYPE,
+            ARM::Tokens::Token::IDENTIFIER,
+            ARM::Tokens::Token::COMMA,
+            ARM::Tokens::Token::FUNCTION,
+            ARM::Tokens::Token::EOL_TOKEN,
+            ARM::Tokens::Token::LABEL,
+            ARM::Tokens::Token::EOL_TOKEN,
+            ARM::Tokens::Token::MOVE_INSTRUCTION,
+            ARM::Tokens::Token::X0,
+            ARM::Tokens::Token::COMMA,
+            ARM::Tokens::Token::DEC_NUMBER,
+            ARM::Tokens::Token::EOL_TOKEN,
+            ARM::Tokens::Token::RET,
+            ARM::Tokens::Token::EOF_TOKEN
+        });
+    }
     SUBCASE("Can read fully qualified arch directive with file name and retain values") {
         std::string line(R"(.arch armv8-a
 .file "test.s")");
@@ -127,10 +169,10 @@ TEST_CASE("Lexer can read files and generate lexems") {
         check_sequence(lexer.get_lexems(), {
             ARM::Tokens::Token::ARCHITECTURE, ARM::Tokens::Token::ARMV8_A, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::FILE, 
             ARM::Tokens::Token::RAW_STRING, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::TEXT_SECTION, ARM::Tokens::Token::EOL_TOKEN,
-            ARM::Tokens::Token::GLOBAL, ARM::Tokens::Token::LABEL, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::DATA_SECTION,
+            ARM::Tokens::Token::GLOBAL, ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::DATA_SECTION,
             ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::ALIGN, ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN, 
-            ARM::Tokens::Token::TYPE, ARM::Tokens::Token::LABEL, ARM::Tokens::Token::COMMA, ARM::Tokens::Token::OBJECT, 
-            ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::SIZE, ARM::Tokens::Token::LABEL, ARM::Tokens::Token::COMMA, 
+            ARM::Tokens::Token::TYPE, ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::COMMA, ARM::Tokens::Token::OBJECT,
+            ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::SIZE, ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::COMMA,
             ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOF_TOKEN});
     }
     SUBCASE("Can read a bigger file") {
@@ -149,31 +191,31 @@ TEST_CASE("Lexer can read files and generate lexems") {
         check_sequence(lexer.get_lexems(), {
         ARM::Tokens::Token::ARCHITECTURE, ARM::Tokens::Token::ARMV8_A, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::FILE,
         ARM::Tokens::Token::RAW_STRING, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::TEXT_SECTION, ARM::Tokens::Token::EOL_TOKEN,
-        ARM::Tokens::Token::GLOBAL, ARM::Tokens::Token::LABEL, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::DATA_SECTION,
+        ARM::Tokens::Token::GLOBAL, ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::DATA_SECTION,
         ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::ALIGN, ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN,
-        ARM::Tokens::Token::TYPE, ARM::Tokens::Token::LABEL, ARM::Tokens::Token::COMMA, ARM::Tokens::Token::OBJECT,
-        ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::SIZE, ARM::Tokens::Token::LABEL, ARM::Tokens::Token::COMMA,
-        ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::LABEL, ARM::Tokens::Token::COLON,
+        ARM::Tokens::Token::TYPE, ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::COMMA, ARM::Tokens::Token::OBJECT,
+        ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::SIZE, ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::COMMA,
+        ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::LABEL,
         ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::WORD, ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN,
-        ARM::Tokens::Token::GLOBAL, ARM::Tokens::Token::LABEL, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::ALIGN,
-        ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::TYPE, ARM::Tokens::Token::LABEL,
+        ARM::Tokens::Token::GLOBAL, ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::ALIGN,
+        ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::TYPE, ARM::Tokens::Token::IDENTIFIER,
         ARM::Tokens::Token::COMMA, ARM::Tokens::Token::OBJECT, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::SIZE,
-        ARM::Tokens::Token::LABEL, ARM::Tokens::Token::COMMA, ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN,
-        ARM::Tokens::Token::LABEL, ARM::Tokens::Token::COLON, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::QUAD,
-        ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::GLOBAL, ARM::Tokens::Token::LABEL,
-        ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::TYPE, ARM::Tokens::Token::LABEL, ARM::Tokens::Token::COMMA,
-        ARM::Tokens::Token::OBJECT, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::SIZE, ARM::Tokens::Token::LABEL,
+        ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::COMMA, ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN,
+        ARM::Tokens::Token::LABEL, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::QUAD,
+        ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::GLOBAL, ARM::Tokens::Token::IDENTIFIER,
+        ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::TYPE, ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::COMMA,
+        ARM::Tokens::Token::OBJECT, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::SIZE, ARM::Tokens::Token::IDENTIFIER,
         ARM::Tokens::Token::COMMA, ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::LABEL,
-        ARM::Tokens::Token::COLON, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::BYTE, ARM::Tokens::Token::DEC_NUMBER, 
-        ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::GLOBAL, ARM::Tokens::Token::LABEL, ARM::Tokens::Token::EOL_TOKEN,
+        ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::BYTE, ARM::Tokens::Token::DEC_NUMBER,
+        ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::GLOBAL, ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::EOL_TOKEN,
         ARM::Tokens::Token::ALIGN, ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::TYPE,
-        ARM::Tokens::Token::LABEL, ARM::Tokens::Token::COMMA, ARM::Tokens::Token::OBJECT, ARM::Tokens::Token::EOL_TOKEN,
-        ARM::Tokens::Token::SIZE, ARM::Tokens::Token::LABEL, ARM::Tokens::Token::COMMA, ARM::Tokens::Token::DEC_NUMBER,
-        ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::LABEL, ARM::Tokens::Token::COLON, ARM::Tokens::Token::EOL_TOKEN,
+        ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::COMMA, ARM::Tokens::Token::OBJECT, ARM::Tokens::Token::EOL_TOKEN,
+        ARM::Tokens::Token::SIZE, ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::COMMA, ARM::Tokens::Token::DEC_NUMBER,
+        ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::LABEL, ARM::Tokens::Token::EOL_TOKEN,
         ARM::Tokens::Token::WORD, ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::GLOBAL,
-        ARM::Tokens::Token::LABEL, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::ALIGN, ARM::Tokens::Token::DEC_NUMBER,
-        ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::TYPE, ARM::Tokens::Token::LABEL, ARM::Tokens::Token::COMMA,
-        ARM::Tokens::Token::OBJECT, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::SIZE, ARM::Tokens::Token::LABEL,
+        ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::ALIGN, ARM::Tokens::Token::DEC_NUMBER,
+        ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::TYPE, ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::COMMA,
+        ARM::Tokens::Token::OBJECT, ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::SIZE, ARM::Tokens::Token::IDENTIFIER,
         ARM::Tokens::Token::COMMA, ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN, 
         });
     }
