@@ -102,6 +102,9 @@ namespace Parser{
         std::string directive;
     };
 
+    enum class Section {
+        Text, Data, Bss, RoData, Unknown
+    };
 
     class Parser {
     public:
