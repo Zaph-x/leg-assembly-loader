@@ -51,7 +51,6 @@ namespace Parser{
             this->name = std::move(name);
         }
 
-
     private:
         std::string name;
         std::vector<std::vector<Node *>> blocks;
