@@ -61,6 +61,7 @@ namespace ARM {
             assert(lexem_stream.next().get_token() == Tokens::Token::FILE);
             if (lexem_stream.peek().get_token() == Tokens::Token::RAW_STRING) {
                 program.set_file_name(lexem_stream.next().get_curr_lexem());
+                assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN);
             }
             else {
                 throw std::runtime_error("Expected file name after .file directive");
