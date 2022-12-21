@@ -61,7 +61,9 @@ TEST_CASE("Parser can parse small programs") {
         ARM::Parser::Parser parser;
         parser.set_up(path);
 
-        CHECK_THROWS_AS(parser.assign_program(), std::runtime_error);
+        parser.assign_program();
+        CHECK(parser.get_program()->get_architecture() == "");
+        CHECK(parser.get_program()->get_file_name() == "");
     }
 
     SUBCASE("Can parse architecture") {

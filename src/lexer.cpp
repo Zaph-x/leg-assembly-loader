@@ -67,8 +67,13 @@ namespace ARM::Lexer {
                     buffer += (char)in->get();
                 }
 
-                if (buffer.ends_with(':') or buffer.starts_with(".L")) {
-                    known_labels[buffer] = {Tokens::Token::LABEL, buffer, line, position};
+                if (buffer.ends_with(':') or buffer.starts_with(".L")) { // lex labels
+                    if (buffer.starts_with(".LFB"))
+                        known_labels[buffer] = {Tokens::Token::FUNC_BEGIN_LABEL, buffer, line, position};
+                    else if (buffer.starts_with(".LFE"))
+                        known_labels[buffer] = {Tokens::Token::FUNC_END_LABEL, buffer, line, position};
+                    else
+                        known_labels[buffer] = {Tokens::Token::LABEL, buffer, line, position};
                     return known_labels[buffer];
                 }
                 else if (Tokens::section_map.contains(buffer)) {

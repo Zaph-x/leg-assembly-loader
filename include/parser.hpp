@@ -48,6 +48,8 @@ namespace Parser{
         GlobalType get_type() const { return type;}
         int get_size() const {return size;}
         std::vector<std::string> get_values() const {return values;}
+        void set_size(int size) {this->size=size;}
+        void set_type(GlobalType type) {this->type=type;}
 
     private:
         std::string name;
@@ -73,10 +75,20 @@ namespace Parser{
         ~Variable() override = default;
     };
 
-    class Function : public Node {
+    class Function : public DefinitionStub{
     public:
         Function() = default;
+        Function(const DefinitionStub &def)
+        {
+            if (def.type != GlobalType::F) throw;
+            this->name = def.name;
+            this->size = def.size;
+            this->values = def.values;
+            this->type = GlobalType::F;
+        }
         ~Function() override = default;
+
+        /*
         void print() override {
             std::cout << "Function: " << name << std::endl;
             int i = 0;
@@ -100,6 +112,11 @@ namespace Parser{
         std::string name;
         std::vector<std::vector<Node *>> blocks;
     };
+
+         */
+    };
+
+
 
     class Program : public Node {
     public:
@@ -125,13 +142,24 @@ namespace Parser{
         }
         [[nodiscard]] std::string get_file_name() const { return file_name; }
 
-        bool has_definition(const std::string &identifier);
+        bool has_variable_definition(const std::string &identifier){
+            std::vector<Variable>::iterator it;
+
+            return std::any_of(global_variables.begin(), global_variables.end(),[&identifier](Variable* var) {return var->get_name() != identifier;});
+        }
+
+        bool has_function_definition(const std::string &identifier){
+            std::vector<Function>::iterator it;
+
+            return std::any_of(functions.begin(), functions.end(),[&identifier](Function* func) {return func->get_name() != identifier;});
+        }
 
     private:
         std::string architecture;
         std::string file_name;
         std::vector<Node*> nodes;
         std::vector<Variable*> global_variables;
+        std::vector<Function*> functions;
     };
 
     class Directive : public Node {
@@ -176,6 +204,25 @@ namespace Parser{
         void assign_text_section();
 
         void verify_stub(const std::string &stub_name);
+
+        void parse_object(std::map<std::string, std::string> &placeholder_values);
+
+        bool has_identifier(const std::string &name);
+
+        void assign_global_size();
+
+        void assign_type();
+
+        void handle_label();
+
+        void assign_value(const std::string &ref_name);
+        void assign_value(int expected_size, Tokens::Token expected_type, const std::string &ref_name);
+
+        void handle_function();
+
+        void handle_multi_word(const std::string &ref_name);
+
+
     };
 }
 }
