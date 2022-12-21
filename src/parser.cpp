@@ -13,8 +13,22 @@ namespace ARM {
 
         std::map<std::string, DefinitionStub> stub_map;
 
-        inline void verify_stub(const std::string &stub_name) {
+        inline void Parser::verify_stub(const std::string &stub_name) {
             if (!stub_map.contains(stub_name)) return;
+
+            auto& stub = stub_map[stub_name];
+
+            if (!(stub.get_name() == stub.get_name() and stub.get_size() != 0 and
+                stub.get_type() != GlobalType::UNDEFINED and stub.get_values().size() > 0)) return;
+
+            if (stub.get_type() == GlobalType::F ){
+                //Function Node
+            }
+
+            if (stub.get_type() == GlobalType::O){
+                Variable var_node = Variable(stub);
+                this->get_program()->add_node(&var_node);
+            }
         }
 
         void Parser::set_up(const std::string &path) {
@@ -86,31 +100,11 @@ namespace ARM {
         }
 
         void Parser::assign_global(){
-            assert(lexem_stream.next().get_token() == Tokens::Token::GLOBAL);
-            std::map<std::string, std::string> placeholder_values;
+            assert(lexem_stream.next().get_token() == Tokens::Token::GLOBAL)
+            if (lexem_stream.peek().get_token() != Tokens::Token::IDENTIFIER) throw;
 
-            if (lexem_stream.peek().get_token() == Tokens::Token::IDENTIFIER){
-                placeholder_values["name"] = lexem_stream.next().get_curr_lexem();
-                while (lexem_stream.peek().get_token() != Tokens::Token::TYPE_DIRECTIVE) lexem_stream.next();
+            if
 
-                assert(lexem_stream.next().get_token() == Tokens::Token::TYPE_DIRECTIVE)
-                auto lexem = lexem_stream.next();
-                assert(lexem.get_token() == Tokens::Token::IDENTIFIER
-                            && placeholder_values["name"] == lexem.get_curr_lexem())
-                assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
-                switch (lexem_stream.next().get_token()) {
-                    case Tokens::Token::FUNCTION:
-                        placeholder_values["type"] = "f"; break;
-                    case Tokens::Token::OBJECT:
-                        placeholder_values["type"] = "o"; parse_object(placeholder_values); break;
-                    case Tokens::Token::TLS_OBJECT:
-                        placeholder_values["type"] = "t"; break;
-                    default:
-                        throw std::runtime_error("Type value not supported");
-                }
-
-
-            }
         }
 
         void Parser::nodeify(){ // Name pending

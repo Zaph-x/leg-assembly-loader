@@ -14,6 +14,9 @@
 namespace ARM{
 namespace Parser{
 
+    enum class GlobalType {
+        UNDEFINED, F, O, T
+    };
 
     class Node {
     public:
@@ -30,9 +33,7 @@ namespace Parser{
     }
 
     class DefinitionStub : public Node {
-        enum class GlobalType {
-            UNDEFINED, F, O, T
-        };
+
     public:
         DefinitionStub() = default;
         explicit DefinitionStub(const std::string &name) {
@@ -43,6 +44,10 @@ namespace Parser{
 
         void print() override { return; }
         void add_node(Node *node) override {return;}
+        std::string get_name() const { return name;}
+        GlobalType get_type() const { return type;}
+        int get_size() const {return size;}
+        std::vector<std::string> get_values() const {return values;}
 
     private:
         std::string name;
@@ -106,6 +111,8 @@ namespace Parser{
             }
         }
         void add_node(Node* node) {
+            if (dynamic_cast<Variable*>(node) != nullptr)
+                global_variables.push_back(dynamic_cast<Variable*>(node));
             nodes.push_back(node);
         }
 
@@ -118,10 +125,13 @@ namespace Parser{
         }
         [[nodiscard]] std::string get_file_name() const { return file_name; }
 
+        bool has_definition(const std::string &identifier);
+
     private:
         std::string architecture;
         std::string file_name;
         std::vector<Node*> nodes;
+        std::vector<Variable*> global_variables;
     };
 
     class Directive : public Node {
@@ -164,6 +174,8 @@ namespace Parser{
         std::unique_ptr<Lexer::Lexer> lexer;
         Program program;
         void assign_text_section();
+
+        void verify_stub(const std::string &stub_name);
     };
 }
 }
