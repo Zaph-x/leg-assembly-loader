@@ -1,3 +1,4 @@
+#include <filesystem>
 #include "doctest.h"
 #include "parser.hpp"
 
@@ -87,5 +88,27 @@ TEST_CASE("Parser can parse small programs") {
         parser.assign_program();
 
         CHECK(parser.get_program()->get_file_name() == "\"madd.c\"");
+    }
+
+
+
+    SUBCASE("Par"){
+        std::fstream file;
+        const std::string path = "./test_files/function.s";
+
+        std::filesystem::path p(path);
+        CHECK(std::filesystem::exists(p));
+
+        file.open(path);
+        std::string ir((std::istreambuf_iterator<char>(file)), (std::istreambuf_iterator<char>()));
+        std::stringstream ss(ir);
+
+        ARM::Lexer::Lexer lexer(ss);
+        lexer.run();
+        ARM::Parser::Parser parser;
+        parser.set_up(lexer);
+
+        parser.assign_program();
+        CHECK(parser.get_program()->get_file_name() == "\"function.c\"");
     }
 }

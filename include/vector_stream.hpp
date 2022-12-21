@@ -1,5 +1,6 @@
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
 #include "lexer.hpp"
 
 #ifndef ARM_VECTOR_STREAM_HPP

@@ -10,6 +10,7 @@
 #include "lexer.hpp"
 #include "converter.hpp"
 
+
 namespace ARM{
 namespace Parser{
 
@@ -27,6 +28,45 @@ namespace Parser{
         ss << typeid(node).name();
         return ss.str();
     }
+
+    class DefinitionStub : public Node {
+        enum class GlobalType {
+            UNDEFINED, F, O, T
+        };
+    public:
+        DefinitionStub() = default;
+        explicit DefinitionStub(const std::string &name) {
+            this->name = name;
+            this->type = GlobalType::UNDEFINED;
+        }
+        ~DefinitionStub() override = default;
+
+        void print() override { return; }
+        void add_node(Node *node) override {return;}
+
+    private:
+        std::string name;
+        GlobalType type = GlobalType::UNDEFINED;
+        int size{};
+        std::vector<std::string> values;
+
+        friend class Variable;
+        friend class Function;
+    };
+
+    class Variable : public DefinitionStub {
+    public:
+        Variable() = default;
+        Variable(const DefinitionStub &def)
+        {
+            if (def.type != GlobalType::O) throw;
+            this->name = def.name;
+            this->size = def.size;
+            this->values = def.values;
+            this->type = GlobalType::O;
+        }
+        ~Variable() override = default;
+    };
 
     class Function : public Node {
     public:
@@ -116,13 +156,13 @@ namespace Parser{
         void assign_program();
         void assign_architecture();
         void assign_file_name();
-
+        void nodeify();
         ARM::VectorStream::vector_stream<ARM::Lexer::Lexem> lexem_stream;
+        void assign_global();
 
     private:
         std::unique_ptr<Lexer::Lexer> lexer;
         Program program;
-
         void assign_text_section();
     };
 }
