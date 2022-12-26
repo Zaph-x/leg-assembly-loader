@@ -173,7 +173,7 @@ TEST_CASE("Lexer can read files and generate lexems") {
             ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::ALIGN, ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOL_TOKEN, 
             ARM::Tokens::Token::TYPE, ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::COMMA, ARM::Tokens::Token::OBJECT,
             ARM::Tokens::Token::EOL_TOKEN, ARM::Tokens::Token::SIZE, ARM::Tokens::Token::IDENTIFIER, ARM::Tokens::Token::COMMA,
-            ARM::Tokens::Token::DEC_NUMBER, ARM::Tokens::Token::EOF_TOKEN});
+            ARM::Tokens::Token::DEC_NUMBER});
     }
     SUBCASE("Can read a bigger file") {
         std::fstream file;
