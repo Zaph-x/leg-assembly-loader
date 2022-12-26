@@ -322,7 +322,6 @@ namespace ARM
             {'\n', Token::EOL_TOKEN},
             {'[', Token::L_BRACKET},
             {']', Token::R_BRACKET},
-            {'-', Token::MINUS_SIGN},
             {'!', Token::EXCLAMATION},
             {',', Token::COMMA},
             {'+', Token::PLUS_SIGN},

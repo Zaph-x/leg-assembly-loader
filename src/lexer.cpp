@@ -26,6 +26,7 @@ namespace ARM::Lexer {
             return EOF;
         }
         char c = (char)in->get();
+        position++;
         if (c == '\n')
         {
             line++;
@@ -36,7 +37,7 @@ namespace ARM::Lexer {
             position++;
         }
         // check for comments
-        if ((c == '/' and in->peek() == '/') or c == '#' or c == ';')
+        if ((c == '/' and in->peek() == '/') or c == ';')
         {
             in->ignore(1000, '\n');
             c = '\n';
@@ -64,7 +65,7 @@ namespace ARM::Lexer {
             if (c == '.') {
                 buffer += c;
                 while (!isspace(in->peek()) and in->peek() != '.' and in->peek() != ',') {
-                    buffer += (char)in->get();
+                    buffer += get_next_char();
                 }
 
                 if (buffer.ends_with(':') or buffer.starts_with(".L")) { // lex labels
@@ -95,7 +96,7 @@ namespace ARM::Lexer {
             else if (c == '@') {
                 buffer += c;
                 while (!isspace(in->peek()) and in->peek() != '.' and in->peek() != ',') {
-                    buffer += (char)in->get();
+                    buffer += get_next_char();
                 }
                 if (buffer == "@progbits") return {Tokens::Token::PROGBITS, buffer, line, position};
 
@@ -107,10 +108,10 @@ namespace ARM::Lexer {
                     return {Tokens::symbols_map[c], std::string(1, c), line, position};
                 }
 
-                if ((c == 'w' or c == 'x' or c == 'v' or c == 's' or c == 'd'  or c == 'b' or c == 'h') and std::isdigit(in->peek())) {
+                if ((c == 'w' or c == 'x' or c == 'v' or c == 's' or c == 'd'  or c == 'b' or c == 'h') and (std::isdigit(in->peek()) or in->peek() == 'p')) {
                     buffer += c;
                     while (isalnum(in->peek())) {
-                        buffer += (char)in->get();
+                        buffer += get_next_char();
                     }
                     if (Tokens::registers_map.contains(buffer)) {
                         return {Tokens::registers_map[buffer], buffer, line, position};
@@ -118,34 +119,38 @@ namespace ARM::Lexer {
                 }
                 if (c == '0' and in->peek() == 'x') {
                     buffer += c;
-                    buffer += (char)in->get();
+                    buffer += get_next_char();
                     while (isxdigit(in->peek())) {
-                        buffer += (char)in->get();
+                        buffer += get_next_char();
                     }
                     return {Tokens::Token::HEX_NUMBER, buffer, line, position};
                 }
-                if (isdigit(c)) {
+                if (isdigit(c) || c == '-' || c == '+' || c == '#') {
                     buffer += c;
                     while (isdigit(in->peek())) {
-                        buffer += (char)in->get();
+                        buffer += get_next_char();
                     }
                     return {Tokens::Token::DEC_NUMBER, buffer, line, position};
                 }
                 if (c == '"') {
                     buffer += c;
                     while (in->peek() != '"' and buffer.back() != '\\') {
-                        buffer += (char)in->get();
+                        buffer += get_next_char();
                     }
-                    buffer += (char)in->get();
+                    buffer += get_next_char();
                     return {Tokens::Token::RAW_STRING, buffer, line, position};
                 }
                 else {
                     buffer += c;
                     while (!isspace(in->peek()) and in->peek() != EOF and in->peek() != '\n' and in-> peek() != ',') {
-                        buffer += (char)in->get();
+                        buffer += get_next_char();
                     }
                     if (buffer == "armv8-a") {
                         return {Tokens::Token::ARMV8_A, buffer, line, position};
+                    }
+                    else if (buffer.starts_with(":lo12:")) {
+                        known_labels[buffer.substr(6)] = {Tokens::Token::LABEL, buffer.substr(6), line, position};
+                        return {Tokens::Token::LABEL, buffer, line, position};
                     }
                     else if (buffer.ends_with(':')) {
                         buffer.pop_back();
@@ -157,7 +162,9 @@ namespace ARM::Lexer {
                             and lexems.back().get_token() != Tokens::Token::SIZE and lexems.back().get_token() != Tokens::Token::ALIGN \
                             and lexems.back().get_token() != Tokens::Token::TYPE and lexems.back().get_token() != Tokens::Token::COMMA) return {Tokens::instructions_map[buffer], buffer, line, position};
                     else if (known_labels.contains(buffer)) return known_labels[buffer];
-                    else if (lexems.back().get_token() == Tokens::Token::GLOBAL and !known_labels.contains(buffer)) {
+                    else if ((lexems.back().get_token() == Tokens::Token::GLOBAL and !known_labels.contains(buffer)) or lexems.back().get_token() == Tokens::Token::BRANCH_LINK_OPCODE) {
+                        // If the previous lexem was a global directive, then the next lexem is a label
+                        // If the previous lexem was a branch link opcode, then the next lexem is either a label or an external function name
                         known_labels[buffer] = {Tokens::Token::IDENTIFIER, buffer, line, position};
                         return known_labels[buffer];
                     } else if (lexems.back().get_token() == Tokens::Token::GLOBAL and known_labels.contains(buffer))
@@ -171,7 +178,8 @@ namespace ARM::Lexer {
                         }
                     }
                 }
-            } else return error(buffer, line, position);
+            }
+            return error(buffer, line, position);
         }
         return {Tokens::Token::EOF_TOKEN, "", line, position};
     }

@@ -5,11 +5,18 @@
 #include "lexer.hpp"
 #include "ast.h"
 
-#define assert(x) if (!(x)) {std::cerr << "Parser assertion failed. " #x " did not hold true." << std::endl; throw;}
 
 
-namespace ARM {
-    namespace Parser {
+namespace ARM::Parser {
+
+#define assert(x) if (!(x)) {std::cerr << "Parser assertion failed. " #x " did not hold true. "<< std::endl \
+                    << "@ " << __FILE__ << ":" << __LINE__ << std::endl \
+                    << "Token: '" << lexem_stream.previous().get_curr_lexem() << "' " << lexem_stream.previous().get_token() << std::endl; throw std::exception();}
+
+        void Parser::error(const Lexer::Lexem &lxm, const std::string &msg) {
+            std::cerr << "Parser error: " << msg << std::endl << "    at " << lxm.get_line() << ":" << lxm.get_possition() << std::endl << "    -> =" << lxm.get_curr_lexem() << "= '" << lxm.get_token() << "'"  << std::endl;
+            throw std::exception();
+        }
 
         std::map<std::string, DefinitionStub> stub_map;
 
@@ -17,6 +24,17 @@ namespace ARM {
             if (!stub_map.contains(stub_name)) return;
 
             auto& stub = stub_map[stub_name];
+
+            if (stub.get_type() == GlobalType::UNDEFINED) return;
+
+            else if (stub.get_type() == GlobalType::F) return;
+            else if (stub.get_type() == GlobalType::O) {
+                if (stub.get_size() == 0) return;
+                if (stub.get_values().size() == 0) return;
+                // add_variable(Variable(stub));
+            } else {
+                error(lexem_stream.current(), "Unsupported stub type");
+            }
 
             if (!(stub.get_name() == stub.get_name() and (stub.get_type() == GlobalType::F or stub.get_size() != 0) and
                 stub.get_type() != GlobalType::UNDEFINED and !stub.get_values().empty())) return;
@@ -26,8 +44,8 @@ namespace ARM {
             }
 
             if (stub.get_type() == GlobalType::O){
-                Variable var_node = Variable(stub);
-                this->get_program()->add_node(&var_node);
+                std::shared_ptr<Variable>var_node (new Variable(stub));
+                this->get_program()->add_node(std::move(var_node));
             }
         }
 
@@ -50,7 +68,8 @@ namespace ARM {
         }
 
         void Parser::assign_program() {
-            set_program(Program());
+            std::shared_ptr<Program> program_node(new Program);
+            set_program(program_node);
 
             while(lexem_stream.has_next()) {
                 switch (lexem_stream.peek().get_token()) {
@@ -85,22 +104,22 @@ namespace ARM {
         void Parser::assign_architecture() {
             assert(lexem_stream.next().get_token() == Tokens::Token::ARCHITECTURE);
             if (lexem_stream.peek().get_token() == Tokens::Token::ARMV8_A) {
-                program.set_architecture(lexem_stream.next().get_curr_lexem());
+                program->set_architecture(lexem_stream.next().get_curr_lexem());
                 assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN);
             }
             else {
-                throw std::runtime_error("Expected identifier after architecture");
+                error(lexem_stream.current(), "Expected identifier after architecture");
             }
         }
 
         void Parser::assign_file_name() {
             assert(lexem_stream.next().get_token() == Tokens::Token::FILE);
             if (lexem_stream.peek().get_token() == Tokens::Token::RAW_STRING) {
-                program.set_file_name(lexem_stream.next().get_curr_lexem());
+                program->set_file_name(lexem_stream.next().get_curr_lexem());
                 assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN);
             }
             else {
-                throw std::runtime_error("Expected file name after .file directive");
+                error(lexem_stream.current(), "Expected file name after .file directive");
             }
 
         }
@@ -121,28 +140,30 @@ namespace ARM {
 
         void Parser::assign_global(){
             assert(lexem_stream.next().get_token() == Tokens::Token::GLOBAL)
-            if (lexem_stream.peek().get_token() != Tokens::Token::IDENTIFIER) throw;
+            if (lexem_stream.peek().get_token() != Tokens::Token::IDENTIFIER) error(lexem_stream.current(), "Expected identifier after .global directive");
 
             if (this->has_identifier(lexem_stream.peek().get_curr_lexem()))
-                throw std::runtime_error("Identifier already defined");
+                error(lexem_stream.current(), "Identifier already defined");
 
             auto lxm = lexem_stream.next();
 
             if (!stub_map.count(lxm.get_curr_lexem())) {
                 stub_map[lxm.get_curr_lexem()] = DefinitionStub(lxm.get_curr_lexem());
                 this->verify_stub(lxm.get_curr_lexem());
+                assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN);
                 return;
             }
+            assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN);
 
         }
 
         void Parser::assign_global_size() {
             assert(lexem_stream.next().get_token() == Tokens::Token::SIZE)
-            if (lexem_stream.peek().get_token() != Tokens::Token::IDENTIFIER) throw;
+            if (lexem_stream.peek().get_token() != Tokens::Token::IDENTIFIER) error(lexem_stream.current(), "Expected identifier after .size directive");
             auto idnt = lexem_stream.next();
             assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
 
-            if (lexem_stream.peek().get_token() != Tokens::Token::DEC_NUMBER) throw;
+            if (lexem_stream.peek().get_token() != Tokens::Token::DEC_NUMBER) error(lexem_stream.current(), "Expected decimal number after .size directive");
             auto size = lexem_stream.next();
 
             if (!stub_map.count(idnt.get_curr_lexem())) {
@@ -150,17 +171,18 @@ namespace ARM {
             }
             stub_map[idnt.get_curr_lexem()].set_size(std::atoi(size.get_curr_lexem().c_str()));
             this->verify_stub(idnt.get_curr_lexem());
+            assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN);
         }
 
         void Parser::assign_type() {
             assert(lexem_stream.next().get_token() == Tokens::Token::TYPE)
-            if (lexem_stream.peek().get_token() != Tokens::Token::IDENTIFIER) throw;
+            if (lexem_stream.peek().get_token() != Tokens::Token::IDENTIFIER) error(lexem_stream.current(), "Expected identifier after .type directive");
             auto idnt = lexem_stream.next();
             assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
 
             if (lexem_stream.peek().get_token() != Tokens::Token::OBJECT
                     and lexem_stream.peek().get_token() != Tokens::Token::FUNCTION
-                    and lexem_stream.peek().get_token() != Tokens::Token::TLS_OBJECT) throw;
+                    and lexem_stream.peek().get_token() != Tokens::Token::TLS_OBJECT) error(lexem_stream.current(), "Expected object, function or tls_object after .type directive");
             auto type = lexem_stream.next();
 
             if (!stub_map.count(idnt.get_curr_lexem())) {
@@ -170,51 +192,50 @@ namespace ARM {
                 case Tokens::Token::OBJECT: stub_map[idnt.get_curr_lexem()].set_type(GlobalType::O); break;
                 case Tokens::Token::FUNCTION: stub_map[idnt.get_curr_lexem()].set_type(GlobalType::F); break;
                 case Tokens::Token::TLS_OBJECT: stub_map[idnt.get_curr_lexem()].set_type(GlobalType::T); break;
-                default: throw;
+                default: error(lexem_stream.current(), "Expected object, function or tls_object after .type directive");
             }
             this->verify_stub(idnt.get_curr_lexem());
 
+            assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN);
         }
 
-        void Parser::handle_function() {
+        void Parser::handle_function(const std::string &ref_name) {
             assert(lexem_stream.next().get_token() == Tokens::Token::FUNC_BEGIN_LABEL)
-            auto function = lexem_stream.next();
+            assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN)
             bool unknown = false;
-            if(!stub_map.contains(function.get_curr_lexem())){
-                stub_map[function.get_curr_lexem()] = DefinitionStub(function.get_curr_lexem());
+            if(!stub_map.contains(ref_name)){
+                stub_map[ref_name] = DefinitionStub(ref_name);
                 unknown = true;
             }
-            if (unknown and lexem_stream.peek().get_token() == Tokens::Token::FUNC_BEGIN_LABEL) {
+            stub_map[ref_name].set_type(GlobalType::F);
+            std::shared_ptr<Function> func = std::make_unique<Function>(stub_map[ref_name]);
+            program->add_function(std::move(func));
+            Parser::assign_instructions(ref_name);
+            this->verify_stub(ref_name);
+            assert(lexem_stream.next().get_token() == Tokens::Token::SIZE)
+            assert(lexem_stream.next().get_token() == Tokens::Token::LABEL)
+            assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
+            assert(lexem_stream.next().get_token() == Tokens::Token::LABEL)
+            assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN)
 
-                stub_map[function.get_curr_lexem()].set_type(GlobalType::F);
-                handle_function();
-                this->verify_stub(function.get_curr_lexem());
-                return;
-            }
-            assign_value(function.get_curr_lexem());
-
-            this->verify_stub((function.get_curr_lexem()));
-
-            return;
         }
 
         void Parser::handle_label() {
             assert(lexem_stream.peek().get_token() == Tokens::Token::LABEL)
             auto label = lexem_stream.next();
-            bool unknown = false;
             if (!stub_map.contains(label.get_curr_lexem())) {
                 stub_map[label.get_curr_lexem()] = DefinitionStub(label.get_curr_lexem());
-                unknown = true;
             }
-            if (unknown and lexem_stream.peek().get_token() == Tokens::Token::FUNC_BEGIN_LABEL) {
+            assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN)
+            if (lexem_stream.peek().get_token() == Tokens::Token::FUNC_BEGIN_LABEL) {
 
                 stub_map[label.get_curr_lexem()].set_type(GlobalType::F);
-                handle_function();
+                handle_function(label.get_curr_lexem());
                 this->verify_stub(label.get_curr_lexem());
                 return;
-            }
-            assign_value(label.get_curr_lexem());
+            } else assign_value(label.get_curr_lexem());
             this->verify_stub(label.get_curr_lexem());
+            assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN);
         }
 
         void Parser::handle_multi_word(const std::string &ref_name) {
@@ -275,7 +296,7 @@ namespace ARM {
                 case Tokens::Token::STRING: {
                     assign_value(8, Tokens::Token::RAW_STRING, ref_name);
                 }
-                default: throw;
+                default: return; //error(lexem_stream.previous(), "Expected .hword, .byte, .word, .float, .double, .quad or .octa after .global");
             }
         }
 
@@ -288,8 +309,361 @@ namespace ARM {
 
         }
 
+        void Parser::parse_arithmetic(const std::shared_ptr<Instruction>& instr) {
+            auto reg = lexem_stream.next();
+            assert(Tokens::registers_map.contains(reg.get_curr_lexem()))
+            instr->add_arg(std::move(std::make_unique<Register>(reg.get_curr_lexem())));
+            assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
+            auto reg2 = lexem_stream.next();
+            assert(Tokens::registers_map.contains(reg2.get_curr_lexem()))
+            instr->add_arg(std::move(std::make_unique<Register>(reg2.get_curr_lexem())));
+            assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
+            auto val = lexem_stream.next();
+            if (val.get_token() == Tokens::Token::DEC_NUMBER) {
+                instr->add_arg(std::move(std::make_unique<ImmediateValue>(val.get_curr_lexem())));
+            } else if (Tokens::registers_map.contains(val.get_curr_lexem())) {
+                instr->add_arg(std::move(std::make_unique<Register>(val.get_curr_lexem())));
+            } else error(val, "Expected register or immediate value");
+        }
 
+        void Parser::parse_mov(const std::shared_ptr<Instruction>& instr) {
+            auto reg = lexem_stream.next();
+            assert(Tokens::registers_map.contains(reg.get_curr_lexem()))
+            instr->add_arg(std::move(std::make_unique<Register>(reg.get_curr_lexem())));
+            assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
+            auto val = lexem_stream.next();
+            if (val.get_token() == Tokens::Token::DEC_NUMBER) {
+                instr->add_arg(std::move(std::make_unique<ImmediateValue>(val.get_curr_lexem())));
+            } else if (Tokens::registers_map.contains(val.get_curr_lexem())) {
+                instr->add_arg(std::move(std::make_unique<Register>(val.get_curr_lexem())));
+            } else error(val, "Expected register or immediate value");
+        }
+
+        void Parser::parse_load(const std::shared_ptr<Instruction>& instr) {
+            auto reg = lexem_stream.next();
+            assert(Tokens::registers_map.contains(reg.get_curr_lexem()))
+            instr->add_arg(std::move(std::make_unique<Register>(reg.get_curr_lexem())));
+            assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
+            auto val = lexem_stream.next();
+            assert(val.get_token() == Tokens::Token::L_BRACKET)
+            auto regstr = lexem_stream.next();
+            assert(Tokens::registers_map.contains(regstr.get_curr_lexem()))
+            val = lexem_stream.next();
+            if (val.get_token() == Tokens::Token::COMMA) {
+                val = lexem_stream.next();
+                assert(val.get_token() == Tokens::Token::DEC_NUMBER)
+                instr->add_arg(std::move(std::make_unique<Register>(regstr.get_curr_lexem())));
+                instr->add_arg(std::move(std::make_unique<Register>(val.get_curr_lexem())));
+                assert(lexem_stream.next().get_token() == Tokens::Token::R_BRACKET)
+            } else if (val.get_token() == Tokens::Token::R_BRACKET) {
+                instr->add_arg(std::move(std::make_unique<Register>(regstr.get_curr_lexem())));
+                instr->add_arg(std::move(std::make_unique<ImmediateValue>("0")));
+            } else error(val, "Expected ',' or ']' after register");
+
+        }
+
+        void Parser::parse_pair_instruction(const std::shared_ptr<Instruction>& instr) {
+            auto reg = lexem_stream.next();
+            assert(Tokens::registers_map.contains(reg.get_curr_lexem()))
+            instr->add_arg(std::make_shared<Register>(reg.get_curr_lexem()));
+            assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
+            reg = lexem_stream.next();
+            assert(Tokens::registers_map.contains(reg.get_curr_lexem()))
+            instr->add_arg(std::make_shared<Register>(reg.get_curr_lexem()));
+            assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
+            auto val = lexem_stream.next();
+            assert(val.get_token() == Tokens::Token::L_BRACKET)
+            auto regstr = lexem_stream.next();
+            assert(Tokens::registers_map.contains(regstr.get_curr_lexem()))
+            auto nxt = lexem_stream.next();
+            if (nxt.get_token() == Tokens::Token::R_BRACKET) {
+                instr->add_arg(std::make_shared<MemoryAccess>
+                                       (std::make_shared<Register>(regstr.get_curr_lexem()),
+                                        std::make_shared<ImmediateValue>("0")));
+                nxt = lexem_stream.next();
+                assert(nxt.get_token() == Tokens::Token::COMMA)
+                nxt = lexem_stream.next();
+                assert(nxt.get_token() == Tokens::Token::DEC_NUMBER)
+                instr->add_arg(std::make_shared<ImmediateValue>(nxt.get_curr_lexem()));
+            } else {
+                assert(nxt.get_token() == Tokens::Token::COMMA)
+                auto offset = lexem_stream.next();
+                assert(offset.get_token() == Tokens::Token::DEC_NUMBER)
+                assert(lexem_stream.next().get_token() == Tokens::Token::R_BRACKET)
+                if (lexem_stream.peek().get_token() == Tokens::Token::EXCLAMATION) {
+                    lexem_stream.next();
+                    instr->add_arg(std::make_shared<UpdatingMemoryAccess>
+                                           (std::make_shared<Register>(regstr.get_curr_lexem()),
+                                            std::make_shared<ImmediateValue>(offset.get_curr_lexem())));
+
+                } else {
+                    instr->add_arg(std::make_shared<MemoryAccess>
+                                           (std::make_shared<Register>(regstr.get_curr_lexem()),
+                                            std::make_shared<ImmediateValue>(offset.get_curr_lexem())));
+
+                }
+
+            }
+        }
+
+        void Parser::parse_bl(const std::shared_ptr<Instruction>& instr) {
+            auto val = lexem_stream.next();
+            if (program->has_function_definition(val.get_curr_lexem())) {
+                instr->add_arg(program->get_function(val.get_curr_lexem()));
+            } else {
+                instr->add_arg(std::make_shared<Function>(val.get_curr_lexem()));
+            }
+        }
+
+        void Parser::parse_store(const std::shared_ptr<Instruction>& instr) {
+            auto reg = lexem_stream.next();
+            assert(Tokens::registers_map.contains(reg.get_curr_lexem()))
+            instr->add_arg(std::make_shared<Register>(reg.get_curr_lexem()));
+            assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
+            auto val = lexem_stream.next();
+            assert(val.get_token() == Tokens::Token::L_BRACKET)
+            auto regstr = lexem_stream.next();
+            assert(Tokens::registers_map.contains(regstr.get_curr_lexem()))
+            auto nxt = lexem_stream.next();
+            if (nxt.get_token() == Tokens::Token::R_BRACKET) {
+                instr->add_arg(std::make_shared<MemoryAccess>
+                                       (std::make_shared<Register>(regstr.get_curr_lexem()),
+                                        std::make_shared<ImmediateValue>("0")));
+                nxt = lexem_stream.next();
+                assert(nxt.get_token() == Tokens::Token::COMMA)
+                nxt = lexem_stream.next();
+                assert(nxt.get_token() == Tokens::Token::DEC_NUMBER)
+                instr->add_arg(std::make_shared<ImmediateValue>(nxt.get_curr_lexem()));
+            } else {
+                assert(nxt.get_token() == Tokens::Token::COMMA)
+                auto offset = lexem_stream.next();
+                assert(offset.get_token() == Tokens::Token::DEC_NUMBER)
+                assert(lexem_stream.next().get_token() == Tokens::Token::R_BRACKET)
+                instr->add_arg(std::make_shared<MemoryAccess>
+                                       (std::make_shared<Register>(regstr.get_curr_lexem()),
+                                        std::make_shared<ImmediateValue>(offset.get_curr_lexem())));
+            }
+        }
+
+        void Parser::parse_compare(const std::shared_ptr<Instruction>& instr) {
+            auto reg = lexem_stream.next();
+            assert(Tokens::registers_map.contains(reg.get_curr_lexem()))
+            instr->add_arg(std::make_shared<Register>(reg.get_curr_lexem()));
+            assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
+            auto val = lexem_stream.next();
+            if (Tokens::registers_map.contains(val.get_curr_lexem())) {
+                instr->add_arg(std::make_shared<Register>(val.get_curr_lexem()));
+            } else if (val.get_token() == Tokens::Token::DEC_NUMBER) {
+                instr->add_arg(std::make_shared<ImmediateValue>(val.get_curr_lexem()));
+            } else error(val, "Expected register or immediate value");
+        }
+
+        void Parser::parse_branch(const std::shared_ptr<Instruction>& instr) {
+            handle_condition_code(instr);
+            auto val = lexem_stream.next();
+            assert(val.get_token() == Tokens::Token::LABEL)
+            instr->add_arg(std::make_shared<Label>(val.get_curr_lexem()));
+        }
+
+        void Parser::handle_condition_code(const std::shared_ptr<Instruction>& instr) {
+            // get last two characters of instruction name
+            if (instr->get_name().length() < 3) return;
+            auto cond_code = instr->get_name().substr(instr->get_name().size() - 2);
+            if (cond_code == "eq") {
+                instr->set_condition(ConditionCode::EQ);
+            } else if (cond_code == "ne") {
+                instr->set_condition(ConditionCode::NE);
+            } else if (cond_code == "cs") {
+                instr->set_condition(ConditionCode::CS);
+            } else if (cond_code == "hs") {
+                instr->set_condition(ConditionCode::HS);
+            } else if (cond_code == "cc") {
+                instr->set_condition(ConditionCode::CC);
+            } else if (cond_code == "lo") {
+                instr->set_condition(ConditionCode::LO);
+            } else if (cond_code == "mi") {
+                instr->set_condition(ConditionCode::MI);
+            } else if (cond_code == "pl") {
+                instr->set_condition(ConditionCode::PL);
+            } else if (cond_code == "vs") {
+                instr->set_condition(ConditionCode::VS);
+            } else if (cond_code == "vc") {
+                instr->set_condition(ConditionCode::VC);
+            } else if (cond_code == "hi") {
+                instr->set_condition(ConditionCode::HI);
+            } else if (cond_code == "ls") {
+                instr->set_condition(ConditionCode::LS);
+            } else if (cond_code == "ge") {
+                instr->set_condition(ConditionCode::GE);
+            } else if (cond_code == "lt") {
+                instr->set_condition(ConditionCode::LT);
+            } else if (cond_code == "gt") {
+                instr->set_condition(ConditionCode::GT);
+            } else if (cond_code == "le") {
+                instr->set_condition(ConditionCode::LE);
+            } else if (cond_code == "al") {
+                instr->set_condition(ConditionCode::AL);
+            }
+        }
+
+        void Parser::parse_adrp(const std::shared_ptr<Instruction>& instr) {
+            auto reg = lexem_stream.next();
+            assert(Tokens::registers_map.contains(reg.get_curr_lexem()))
+            instr->add_arg(std::make_shared<Register>(reg.get_curr_lexem()));
+            assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
+            auto val = lexem_stream.next();
+            assert(val.get_token() == Tokens::Token::LABEL)
+            instr->add_arg(std::make_shared<Label>(val.get_curr_lexem()));
+        }
+
+        void Parser::handle_instruction(const std::string &ref_name) {
+            auto instruction = lexem_stream.next();
+            std::shared_ptr<Instruction> instr;
+
+            assert(Tokens::instructions_map.contains(instruction.get_curr_lexem()))
+            switch (instruction.get_token()) {
+                case Tokens::Token::ADD_OPCODE: {
+                    instr = std::make_shared<Instruction>(InstructionType::ADD, instruction.get_curr_lexem());
+                    parse_arithmetic(instr);
+                    break;
+                }
+                case Tokens::Token::SUB_OPCODE: {
+                    instr = std::make_shared<Instruction>(InstructionType::SUB, instruction.get_curr_lexem());
+                    parse_arithmetic(instr);
+                    break;
+                }
+                case Tokens::Token::MUL_OPCODE: {
+                    instr = std::make_shared<Instruction>(InstructionType::MUL, instruction.get_curr_lexem());
+                    parse_arithmetic(instr);
+                    break;
+                }
+                case Tokens::Token::DIV_OPCODE: {
+                    error(instruction, "DIV instruction not implemented yet");
+                    instr = std::make_shared<Instruction>(InstructionType::DIV, instruction.get_curr_lexem());
+                    break;
+                }
+                case Tokens::Token::MOVE_INSTRUCTION: {
+                    instr = std::make_shared<Instruction>(InstructionType::MOV, instruction.get_curr_lexem());
+                    parse_mov(instr);
+                    break;
+                }
+                case Tokens::Token::LOAD_OPCODE: {
+                    instr = std::make_shared<Instruction>(InstructionType::LDR, instruction.get_curr_lexem());
+                    parse_load(instr);
+                    break;
+                }
+                case Tokens::Token::STORE_OPCODE: {
+                    instr = std::make_shared<Instruction>(InstructionType::STR, instruction.get_curr_lexem());
+                    parse_store(instr);
+                    break;
+                }
+                case Tokens::Token::BRANCH_OPCODE: {
+                    instr = std::make_shared<Instruction>(InstructionType::B, instruction.get_curr_lexem());
+                    parse_branch(instr);
+                    break;
+                }
+                case Tokens::Token::BRANCH_LINK_OPCODE: {
+                    instr = std::make_shared<Instruction>(InstructionType::BL, instruction.get_curr_lexem());
+                    parse_bl(instr);
+                    break;
+                }
+                case Tokens::Token::FLOAT_CONVERT: {
+                    instr = std::make_shared<Instruction>(InstructionType::CVT, instruction.get_curr_lexem());
+                    break;
+                }
+                case Tokens::Token::STORE_PAIR_OPCODE: {
+                    instr = std::make_shared<Instruction>(InstructionType::STP, instruction.get_curr_lexem());
+                    parse_pair_instruction(instr);
+                    break;
+                }
+                case Tokens::Token::LOAD_PAIR_OPCODE: {
+                    instr = std::make_shared<Instruction>(InstructionType::LDP, instruction.get_curr_lexem());
+                    parse_pair_instruction(instr);
+                    break;
+                }
+                case Tokens::Token::NO_OP_OPCODE: {
+                    instr = std::make_shared<Instruction>(InstructionType::NOP, instruction.get_curr_lexem());
+                    break;
+                }
+                case Tokens::Token::RET: {
+                    instr = std::make_shared<Instruction>(InstructionType::RET, instruction.get_curr_lexem());
+                    break;
+                }
+                case Tokens::Token::COMPARE_OPCODE: {
+                    instr = std::make_shared<Instruction>(InstructionType::CMP, instruction.get_curr_lexem());
+                    parse_compare(instr);
+                    break;
+                }
+                case Tokens::Token::PC_RELATIVE_ADR_CALC: {
+                    instr = std::make_shared<Instruction>(InstructionType::ADRP, instruction.get_curr_lexem());
+                    parse_adrp(instr);
+                    break;
+                }
+
+                default:
+                    error(instruction, "Expected a supported instruction");
+            }
+            program->get_function(ref_name)->add_instruction(instr);
+        }
+
+        void Parser::handle_cfi(const std::string &ref_name) {
+            auto cfi = lexem_stream.next();
+            assert(Tokens::cfi_map.contains(cfi.get_curr_lexem()))
+            std::shared_ptr<Instruction> instr;
+            switch (cfi.get_token()) {
+                case Tokens::Token::CFI_DEF_CFA_OFFSET: {
+                    auto offset = lexem_stream.next();
+                    assert(offset.get_token() == Tokens::Token::DEC_NUMBER)
+                    instr = std::make_shared<Instruction>(InstructionType::CFI_CFA, cfi.get_curr_lexem());
+                    instr->add_arg(std::make_unique<ImmediateValue>(offset.get_curr_lexem()));
+                    break;
+                }
+                case Tokens::Token::CFI_OFFSET: {
+                    auto reg = lexem_stream.next();
+                    assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
+                    auto offset = lexem_stream.next();
+                    assert(offset.get_token() == Tokens::Token::DEC_NUMBER)
+                    instr = std::make_shared<Instruction>(InstructionType::CFI_OFFSET, cfi.get_curr_lexem());
+                    instr->add_arg(std::make_shared<Register>("r" + reg.get_curr_lexem()));
+                    instr->add_arg(std::make_shared<ImmediateValue>(offset.get_curr_lexem()));
+                    break;
+                }
+                case Tokens::Token::CFI_RESTORE: {
+                    auto reg = lexem_stream.next();
+                    instr = std::make_shared<Instruction>(InstructionType::CFI_RESET, cfi.get_curr_lexem());
+                    instr->add_arg(std::make_shared<Register>("r" + reg.get_curr_lexem()));
+                    break;
+                }
+                case Tokens::Token::CFI_ENDPROC: return;
+                default:
+                    error(lexem_stream.previous(), "Expected a supported CFI");
+            }
+            program->get_function(ref_name)->add_instruction(instr);
+        }
+
+        void Parser::assign_instructions(const std::string &ref_name) {
+            auto func = program->get_function(ref_name);
+            if (func == nullptr) error(lexem_stream.current(), "Function not found");
+            assert(lexem_stream.next().get_token() == Tokens::Token::CFI_STARTPROC)
+            assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN)
+            while (lexem_stream.peek().get_token() != Tokens::Token::FUNC_END_LABEL) {
+                if (Tokens::instructions_map.contains(lexem_stream.peek().get_curr_lexem())) {
+                    handle_instruction(ref_name);
+                } else if (Tokens::cfi_map.contains(lexem_stream.peek().get_curr_lexem())) {
+                    handle_cfi(ref_name);
+                } else if (lexem_stream.peek().get_token() == Tokens::Token::LABEL) {
+                    program->get_function(ref_name)->add_instruction(std::make_shared<Instruction>(InstructionType::LABEL,
+                                                                                                 lexem_stream.next().get_curr_lexem()));
+                } else {
+                    error(lexem_stream.current(), "Expected a supported instruction");
+                }
+
+                if (lexem_stream.next().get_token() != Tokens::Token::EOL_TOKEN) {
+                    error(lexem_stream.previous(), "Expected EOL");
+                }
+            }
+            assert(lexem_stream.next().get_token() == Tokens::Token::FUNC_END_LABEL)
+            assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN)
+        }
     }
-
-
-}
+#undef assert

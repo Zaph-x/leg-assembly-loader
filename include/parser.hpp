@@ -23,7 +23,7 @@ namespace Parser{
         Node() = default;
         virtual ~Node() = default;
         virtual void print() = 0;
-        virtual void add_node(Node *node) = 0;
+        virtual void add_node(std::shared_ptr<Node> node) = 0;
     };
 
     inline std::string to_string(const Node &node) {
@@ -31,6 +31,7 @@ namespace Parser{
         ss << typeid(node).name();
         return ss.str();
     }
+
 
     class DefinitionStub : public Node {
 
@@ -43,7 +44,7 @@ namespace Parser{
         ~DefinitionStub() override = default;
 
         void print() override { return; }
-        void add_node(Node *node) override {return;}
+        void add_node(std::shared_ptr<Node> node) override {return;}
         std::string get_name() const { return name;}
         GlobalType get_type() const { return type;}
         int get_size() const {return size;}
@@ -61,12 +62,107 @@ namespace Parser{
         friend class Function;
     };
 
+    class Register : public Node {
+    public:
+        Register() = default;
+        explicit Register(const std::string &name) {
+            this->name = name;
+        }
+        ~Register() override = default;
+
+        void print() override { return; }
+        void add_node( std::shared_ptr<Node>node) override {return;}
+        std::string get_name() const { return name;}
+    private:
+        std::string name;
+    };
+
+    class ImmediateValue : public Node {
+    public:
+        ImmediateValue() = default;
+        explicit ImmediateValue(const std::string &value) {
+            this->value = value;
+        }
+        ~ImmediateValue() override = default;
+
+        void print() override { return; }
+        void add_node(std::shared_ptr<Node>node) override {return;}
+    private:
+        std::string value;
+    };
+
+    class MemoryAccess : public Node {
+    public:
+        MemoryAccess() = default;
+        explicit MemoryAccess(std::shared_ptr<Register> reg, std::shared_ptr<ImmediateValue> imm) {
+            this->reg.swap(reg);
+            this->imm.swap(imm);
+        }
+        ~MemoryAccess() override = default;
+        void print() override { return; }
+        void add_node(std::shared_ptr<Node>node) override {return;}
+    private:
+        std::shared_ptr<Register> reg{};
+        std::shared_ptr<ImmediateValue> imm{};
+    };
+
+    class UpdatingMemoryAccess : public MemoryAccess {
+    public:
+        explicit UpdatingMemoryAccess(std::shared_ptr<Register> reg, std::shared_ptr<ImmediateValue> imm) : MemoryAccess(std::move(reg), std::move(imm)) {};
+    };
+
+    enum class InstructionType {
+        ADD, SUB, MUL, DIV, MOV, CMP, B, BL, LDR, STR, CVT, STP, LDP, RET, CFI_CFA, CFI_OFFSET, CFI_RESET, UNDEFINED,
+        NOP, LABEL, ADRP
+    };
+
+    enum class ConditionCode {
+        EQ, NE, CS, CC, MI, PL, VS, VC, HI, LS, GE, LT, GT, LE, AL, HS, LO
+    };
+
+    class Instruction : public Node {
+    public:
+        Instruction() = default;
+        explicit Instruction(InstructionType type, const std::string &name) {
+            this->type = type;
+            this->name = name;
+        }
+        ~Instruction() override = default;
+
+        void print() override {};
+        void add_node(std::shared_ptr<Node> node) override {};
+        InstructionType get_type() const { return type;}
+        std::string get_name() const { return name;}
+        void add_arg(std::shared_ptr<Node> arg) { args.push_back(std::move(arg));}
+        void set_condition(ConditionCode condition) { this->cond = condition;}
+    private:
+        InstructionType type = InstructionType::UNDEFINED;
+        ConditionCode cond = ConditionCode::AL;
+        std::vector<std::shared_ptr<Node>> args;
+        std::string name;
+    };
+
+    class Label : public Node {
+    public:
+        Label() = default;
+        explicit Label(const std::string &name) {
+            this->name = name;
+        }
+        ~Label() override = default;
+
+        void print() override { return; }
+        void add_node(std::shared_ptr<Node>node) override {return;}
+        std::string get_name() const { return name;}
+    private:
+        std::string name;
+    };
+
     class Variable : public DefinitionStub {
     public:
         Variable() = default;
         Variable(const DefinitionStub &def)
         {
-            if (def.type != GlobalType::O) throw;
+            if (def.type != GlobalType::O) throw std::runtime_error("Wrong type of definition");
             this->name = def.name;
             this->size = def.size;
             this->values = def.values;
@@ -75,45 +171,55 @@ namespace Parser{
         ~Variable() override = default;
     };
 
+    enum class CFIType {
+        DEF_CFA_OFFSET, DEF_CFA_REGISTER, OFFSET, RESTORE, UNDEFINED
+    };
+
+    class CFI : public Node {
+    public:
+        CFI() = default;
+        CFI(CFIType type) {
+            this->type = type;
+        }
+        ~CFI() override = default;
+        void print() override { }
+        void add_node(std::shared_ptr<Node>node) override {}
+        CFIType get_type() const { return type;}
+        void set_reg(Register *reg) { this->reg = reg;}
+        void set_imm(ImmediateValue *imm) { this->imm = imm;}
+
+    private:
+        CFIType type = CFIType::UNDEFINED;
+        Register *reg{};
+        ImmediateValue *imm{};
+    };
+
     class Function : public DefinitionStub{
     public:
         Function() = default;
         Function(const DefinitionStub &def)
         {
-            if (def.type != GlobalType::F) throw;
+            if (def.type != GlobalType::F) throw std::runtime_error("Wrong type of definition");
             this->name = def.name;
             this->size = def.size;
             this->values = def.values;
             this->type = GlobalType::F;
+            is_external = false;
+        }
+        Function(const std::string &name) {
+            this->name = name;
+            this->type = GlobalType::F;
+            is_external = true;
         }
         ~Function() override = default;
 
-        /*
-        void print() override {
-            std::cout << "Function: " << name << std::endl;
-            int i = 0;
-            for (auto &blcks : blocks) {
-                std::cout << "Block " << i << std::endl;
-                for (auto &node : blcks) {
-                    std::cout << "  Node: " << to_string(*node) << std::endl;
-                }
-            }
-        }
-        void add_block(std::vector<Node *> block) {
-            blocks.push_back(block);
-
-        }
-
-        void set_name(std::string name) {
-            this->name = std::move(name);
-        }
+        void print() override { return; }
+        void add_node(std::shared_ptr<Node> node) override {return;}
+        void add_instruction(const std::shared_ptr<Instruction>& instruction) { instructions.push_back(instruction);}
 
     private:
-        std::string name;
-        std::vector<std::vector<Node *>> blocks;
-    };
-
-         */
+        std::vector<std::shared_ptr<Node>> instructions;
+        bool is_external = false;
     };
 
 
@@ -123,43 +229,55 @@ namespace Parser{
         Program() = default;
         ~Program() = default;
         void print() {
-            for (auto node : nodes) {
+            for (auto &node : nodes) {
                 node->print();
             }
         }
-        void add_node(Node* node) {
-            if (dynamic_cast<Variable*>(node) != nullptr)
-                global_variables.push_back(dynamic_cast<Variable*>(node));
+        void add_node(std::shared_ptr<Node> node) {
+            if (node != nullptr)
+            {
+                std::shared_ptr<Variable> var = std::dynamic_pointer_cast<Variable>(node);
+                global_variables.push_back(var);
+            }
             nodes.push_back(node);
         }
 
-        void set_architecture(std::string arch) {
-            architecture = std::move(arch);
+        void set_architecture(const std::string &arch) {
+            architecture = arch;
         }
         [[nodiscard]] std::string get_architecture() const { return architecture; }
-        void set_file_name(std::string name) {
-            this->file_name = std::move(name);
+        void set_file_name(const std::string &name) {
+            this->file_name = name;
         }
-        [[nodiscard]] std::string get_file_name() const { return file_name; }
+        std::string get_file_name() const { return file_name; }
 
         bool has_variable_definition(const std::string &identifier){
-            std::vector<Variable>::iterator it;
+            return std::any_of(global_variables.begin(), global_variables.end(),[&identifier](std::shared_ptr<Variable> &var) {return var->get_name() == identifier;});
+        }
 
-            return std::any_of(global_variables.begin(), global_variables.end(),[&identifier](Variable* var) {return var->get_name() != identifier;});
+        void add_function(std::shared_ptr<Function> func) {
+            functions.push_back(std::move(func));
+        }
+
+        std::shared_ptr<Function> get_function(const std::string &name) {
+            for (auto &func : functions) {
+                if (func->get_name() == name) return func;
+            }
+            std::shared_ptr<Function> null_val{};
+            return null_val;
         }
 
         bool has_function_definition(const std::string &identifier){
-            std::vector<Function>::iterator it;
 
-            return std::any_of(functions.begin(), functions.end(),[&identifier](Function* func) {return func->get_name() != identifier;});
+            return std::any_of(functions.begin(), functions.end(),[&identifier](std::shared_ptr<Function> &func) {return func->get_name() == identifier;});
         }
 
     private:
-        std::string architecture;
-        std::string file_name;
-        std::vector<Node*> nodes;
-        std::vector<Variable*> global_variables;
-        std::vector<Function*> functions;
+        std::string architecture = "";
+        std::string file_name = "";
+        std::vector<std::shared_ptr<Node>> nodes;
+        std::vector<std::shared_ptr<Variable>> global_variables;
+        std::vector<std::shared_ptr<Function>> functions;
     };
 
     class Directive : public Node {
@@ -189,18 +307,20 @@ namespace Parser{
         ~Parser() = default;
         void set_up(const std::string &path);
         void set_up(ARM::Lexer::Lexer &lexer);
-        Program* get_program() { return &program; }
-        void set_program(const Program& prg) { this->program = prg; }
+        std::shared_ptr<Program> get_program() { return program; }
+        void set_program(std::shared_ptr<Program> prg) { this->program = prg; }
         void assign_program();
         void assign_architecture();
         void assign_file_name();
         void nodeify();
         ARM::VectorStream::vector_stream<ARM::Lexer::Lexem> lexem_stream;
         void assign_global();
+        void error(const Lexer::Lexem &lxm, const std::string &msg);
 
     private:
-        std::unique_ptr<Lexer::Lexer> lexer;
-        Program program;
+        std::shared_ptr<Lexer::Lexer> lexer;
+        std::shared_ptr<Program> program;
+
         void assign_text_section();
 
         void verify_stub(const std::string &stub_name);
@@ -218,11 +338,39 @@ namespace Parser{
         void assign_value(const std::string &ref_name);
         void assign_value(int expected_size, Tokens::Token expected_type, const std::string &ref_name);
 
-        void handle_function();
+        void handle_function(const std::string &ref_name);
 
         void handle_multi_word(const std::string &ref_name);
 
 
+        void verify_function_stub(const DefinitionStub &stub);
+
+        void assign_instructions(const std::string &ref_name);
+
+        void handle_instruction(const std::string &ref_name);
+
+        void parse_arithmetic(const std::shared_ptr<Instruction>&instr);
+
+        void parse_mov(const std::shared_ptr<Instruction>&instr);
+
+        void parse_load(const std::shared_ptr<Instruction>&instr);
+        void parse_store(const std::shared_ptr<Instruction>&instr);
+
+        void parse_pair_instruction(const std::shared_ptr<Instruction>&instr);
+
+        void handle_cfi(const std::string &ref_name);
+
+        void parse_bl(const std::shared_ptr<Instruction>&instr);
+
+        void parse_compare(const std::shared_ptr<Instruction>&instr);
+
+        void parse_branch(const std::shared_ptr<Instruction>&instr);
+
+        void parse_ldp(std::shared_ptr<Instruction> instr);;
+
+        void handle_condition_code(const std::shared_ptr<Instruction> &instr);
+
+        void parse_adrp(const std::shared_ptr<Instruction> &instr);
     };
 }
 }

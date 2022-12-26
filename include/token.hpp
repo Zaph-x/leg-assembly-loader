@@ -179,11 +179,9 @@ namespace ARM
                 {'\n', Token::EOL_TOKEN},
                 {'[',  Token::L_BRACKET},
                 {']',  Token::R_BRACKET},
-                {'-',  Token::MINUS_SIGN},
                 {'!',  Token::EXCLAMATION},
                 {',',  Token::COMMA},
                 {'+',  Token::PLUS_SIGN},
-                {':',  Token::COLON},
         };
 
         inline static std::unordered_map<std::string, Token> branch_map = {};
@@ -230,7 +228,9 @@ namespace ARM
 
 
         inline static std::unordered_map<std::string, Token> instructions_map = {
+            {"nop", Token::NO_OP_OPCODE},
             {"add", Token::ADD_OPCODE},
+            {"adrp", Token::PC_RELATIVE_ADR_CALC},
             {"adc", Token::ADD_CARRY_OPCODE},
             {"sub", Token::SUB_OPCODE},
             {"sbc", Token::SUB_CARRY_OPCODE},
@@ -241,6 +241,7 @@ namespace ARM
             {"orr", Token::OR_OPCODE},
             {"bic", Token::BIT_CLEAR_OPCODE},
             {"ldr", Token::LOAD_OPCODE},
+            {"ldrb", Token::LOAD_REGISTER_BYTE},
             {"str", Token::STORE_OPCODE},
             {"lsl", Token::SHIFT_OPCODE},
             {"lsr", Token::SHIFT_OPCODE},
@@ -248,7 +249,7 @@ namespace ARM
             {"ror", Token::SHIFT_OPCODE},
             {"rxx", Token::SHIFT_OPCODE},
             {"b", Token::BRANCH_OPCODE},
-            {"bl", Token::BRANCH_OPCODE},
+            {"bl", Token::BRANCH_LINK_OPCODE},
             {"br", Token::BRANCH_OPCODE},
             {"blr", Token::BRANCH_OPCODE},
             {"bx", Token::BRANCH_OPCODE},
@@ -271,6 +272,12 @@ namespace ARM
             {"tbnz", Token::BRANCH_OPCODE},
             {"ret", Token::RET},
             {"mov", Token::MOVE_INSTRUCTION},
+            {"mul", Token::MUL_OPCODE},
+            {"div", Token::DIV_OPCODE},
+            {"fcvt", Token::FLOAT_CONVERT},
+            {"cmp", Token::COMPARE_OPCODE},
+            {"stp", Token::STORE_PAIR_OPCODE},
+            {"ldp", Token::LOAD_PAIR_OPCODE},
         };
 
         inline static std::unordered_map<std::string, Token> conditional_map = {
@@ -400,7 +407,6 @@ namespace ARM
             {"x28", Token::X28},
             {"x29", Token::X29},
             {"x30", Token::X30},
-            {"sp", Token::SP},
             {"xzr", Token::XZR},
             {"v0", Token::V0},
             {"v1", Token::V1},

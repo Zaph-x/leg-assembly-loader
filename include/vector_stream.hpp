@@ -36,6 +36,13 @@ namespace ARM::VectorStream {
             return get(index++);
         }
 
+        T current() {
+            if (index == vector.size()) {
+                throw std::out_of_range("Cannot get current from empty vector_stream");
+            }
+            return get(index);
+        }
+
         T next() {
             if (has_next()) {
                 return get(index++);
@@ -59,6 +66,10 @@ namespace ARM::VectorStream {
                 return get(index + offset);
             }
             throw std::out_of_range("Index out of range");
+        }
+
+        T previous() {
+            return get(index - 1);
         }
 
     private:
