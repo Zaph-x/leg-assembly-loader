@@ -1,73 +1,47 @@
 #ifndef REGISTER_TOKENS_HPP
 #define REGISTER_TOKENS_HPP
 
+#define REG(LETTER) \
+    X(LETTER##0) \
+    X(LETTER##1) \
+    X(LETTER##2) \
+    X(LETTER##3) \
+    X(LETTER##4) \
+    X(LETTER##5) \
+    X(LETTER##6) \
+    X(LETTER##7) \
+    X(LETTER##8) \
+    X(LETTER##9) \
+    X(LETTER##10) \
+    X(LETTER##11) \
+    X(LETTER##12) \
+    X(LETTER##13) \
+    X(LETTER##14) \
+    X(LETTER##15) \
+    X(LETTER##16) \
+    X(LETTER##17) \
+    X(LETTER##18) \
+    X(LETTER##19) \
+    X(LETTER##20) \
+    X(LETTER##21) \
+    X(LETTER##22) \
+    X(LETTER##23) \
+    X(LETTER##24) \
+    X(LETTER##25) \
+    X(LETTER##26) \
+    X(LETTER##27) \
+    X(LETTER##28) \
+    X(LETTER##29) \
+    X(LETTER##30) \
+    X(LETTER##31)
+
 #define _32BIT_REGISTERS \
-    X(W0) \
-    X(W1) \
-    X(W2) \
-    X(W3) \
-    X(W4) \
-    X(W5) \
-    X(W6) \
-    X(W7) \
-    X(W8) \
-    X(W9) \
-    X(W10) \
-    X(W11) \
-    X(W12) \
-    X(W13) \
-    X(W14) \
-    X(W15) \
-    X(W16) \
-    X(W17) \
-    X(W18) \
-    X(W19) \
-    X(W20) \
-    X(W21) \
-    X(W22) \
-    X(W23) \
-    X(W24) \
-    X(W25) \
-    X(W26) \
-    X(W27) \
-    X(W28) \
-    X(W29) \
-    X(W30) \
+    REG(W) \
     X(WZR) \
     X(WSP) \
 
 #define _64BIT_REGISTERS \
-    X(X0) \
-    X(X1) \
-    X(X2) \
-    X(X3) \
-    X(X4) \
-    X(X5) \
-    X(X6) \
-    X(X7) \
-    X(X8) \
-    X(X9) \
-    X(X10) \
-    X(X11) \
-    X(X12) \
-    X(X13) \
-    X(X14) \
-    X(X15) \
-    X(X16) \
-    X(X17) \
-    X(X18) \
-    X(X19) \
-    X(X20) \
-    X(X21) \
-    X(X22) \
-    X(X23) \
-    X(X24) \
-    X(X25) \
-    X(X26) \
-    X(X27) \
-    X(X28) \
-    X(X29) \
-    X(X30) \
+    REG(X) \
     X(XZR) \
     X(SP) \
     X(PC) \
@@ -87,11 +61,31 @@
     X(SPSR_EL2) \
     X(SPSR_EL3)
 
+#define SIMD_VECTOR_REGISTERS \
+    REG(V)
+
+#define SIMD_FLOAT64_REGISTERS \
+    REG(D)
+
+#define SIMD_FLOAT32_REGISTERS \
+    REG(S)
+
+#define SIMD_FLOAT16_REGISTERS \
+    REG(H) 
+
+#define SIMD_FLOAT8_REGISTERS \
+    REG(B)
+
 
 #define REGISTERS \
     _64BIT_REGISTERS \
     _32BIT_REGISTERS \
     EXCEPTION_LINK_REGISTERS \
+    SIMD_VECTOR_REGISTERS \
+    SIMD_FLOAT64_REGISTERS \
+    SIMD_FLOAT32_REGISTERS \
+    SIMD_FLOAT16_REGISTERS \
+    SIMD_FLOAT8_REGISTERS \
     X(FP) \
     X(LR)
 

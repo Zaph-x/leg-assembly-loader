@@ -1,14 +1,13 @@
-# Ignore all
-*
-
-# Unignore all files with extensions recursively
-!**/*.*
-
-# Unignore Makefiles recursively
-!**/Makefile
-
+*_test
+.vscode/
 # Prerequisites
 *.d
+
+tests/test_files/c_files
+cmake-build-debug/
+cmake-build-release/
+.idea/
+
 
 # Compiled Object files
 *.slo
