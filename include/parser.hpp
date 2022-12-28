@@ -245,7 +245,7 @@ namespace Parser{
         void set_architecture(const std::string &arch) {
             architecture = arch;
         }
-        [[nodiscard]] std::string get_architecture() const { return architecture; }
+        std::string get_architecture() const { return architecture; }
         void set_file_name(const std::string &name) {
             this->file_name = name;
         }
