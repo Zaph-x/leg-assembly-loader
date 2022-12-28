@@ -113,7 +113,7 @@ namespace Parser{
 
     enum class InstructionType {
         ADD, SUB, MUL, DIV, MOV, CMP, B, BL, LDR, STR, CVT, STP, LDP, RET, CFI_CFA, CFI_OFFSET, CFI_RESET, UNDEFINED,
-        NOP, LABEL, ADRP
+        NOP, LABEL, ADRP, LDR_SIGNED, CFI_START, CFI_END
     };
 
     enum class ConditionCode {
@@ -216,9 +216,9 @@ namespace Parser{
         void print() override { return; }
         void add_node(std::shared_ptr<Node> node) override {return;}
         void add_instruction(const std::shared_ptr<Instruction>& instruction) { instructions.push_back(instruction);}
-
+        std::vector<std::shared_ptr<Instruction>> get_instructions() const { return instructions;}
     private:
-        std::vector<std::shared_ptr<Node>> instructions;
+        std::vector<std::shared_ptr<Instruction>> instructions;
         bool is_external = false;
     };
 
@@ -266,7 +266,9 @@ namespace Parser{
             std::shared_ptr<Function> null_val{};
             return null_val;
         }
-
+        std::vector<std::shared_ptr<Function>> get_functions() {
+            return functions;
+        }
         bool has_function_definition(const std::string &identifier){
 
             return std::any_of(functions.begin(), functions.end(),[&identifier](std::shared_ptr<Function> &func) {return func->get_name() == identifier;});
@@ -315,17 +317,15 @@ namespace Parser{
         void nodeify();
         ARM::VectorStream::vector_stream<ARM::Lexer::Lexem> lexem_stream;
         void assign_global();
-        void error(const Lexer::Lexem &lxm, const std::string &msg);
 
     private:
         std::shared_ptr<Lexer::Lexer> lexer;
         std::shared_ptr<Program> program;
 
+        void error(int line, const Lexer::Lexem &lxm, const std::string &msg);
         void assign_text_section();
 
         void verify_stub(const std::string &stub_name);
-
-        void parse_object(std::map<std::string, std::string> &placeholder_values);
 
         bool has_identifier(const std::string &name);
 

@@ -4,6 +4,7 @@
 
 #define OPCODES \
     X(ADD_OPCODE) \
+    X(FLOAT_ADD_OPCODE) \
     X(ADD_CARRY_OPCODE)            \
     X(SUB_OPCODE) \
     X(SUB_CARRY_OPCODE) \
@@ -28,6 +29,12 @@
     X(STORE_PAIR_OPCODE)            \
     X(PC_RELATIVE_ADR_CALC)            \
     X(LOAD_REGISTER_BYTE)            \
+    X(LOAD_REGISTER_HW)            \
+    X(LOAD_REGISTER_SIGNED_BYTE)            \
+    X(LOAD_REGISTER_SIGNED_HW)            \
+    X(LOAD_REGISTER_SIGHED_WORD)            \
+    X(MOVE_INSTRUCTION) \
+    X(FLOAT_MOVE_INSTRUCTION) \
     X(NO_OP_OPCODE)
 
 

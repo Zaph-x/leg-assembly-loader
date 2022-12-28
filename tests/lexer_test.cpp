@@ -230,7 +230,7 @@ TEST_CASE("Lexer can read files and generate lexems") {
         ARM::Lexer::Lexer lexer(ss);
 
         lexer.run();
-        // assert that tests/test_files/constants.s can be lexed with proper tokens
+
         CHECK(lexer.get_lexems().size() > 0);
         check_sequence_not_contains(lexer.get_lexems(), ARM::Tokens::Token::ERROR);
     }

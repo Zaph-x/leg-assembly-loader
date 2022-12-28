@@ -94,7 +94,6 @@ namespace ARM
     TYPE_TYPES      \
     CONDITION_CODES\
     X(TYPE_DIRECTIVE) \
-    X(MOVE_INSTRUCTION) \
     X(RAW_STRING) \
     X(DEC_NUMBER)    \
     X(HEX_NUMBER)   \
@@ -230,6 +229,7 @@ namespace ARM
         inline static std::unordered_map<std::string, Token> instructions_map = {
             {"nop", Token::NO_OP_OPCODE},
             {"add", Token::ADD_OPCODE},
+            {"fadd", Token::FLOAT_ADD_OPCODE},
             {"adrp", Token::PC_RELATIVE_ADR_CALC},
             {"adc", Token::ADD_CARRY_OPCODE},
             {"sub", Token::SUB_OPCODE},
@@ -242,6 +242,10 @@ namespace ARM
             {"bic", Token::BIT_CLEAR_OPCODE},
             {"ldr", Token::LOAD_OPCODE},
             {"ldrb", Token::LOAD_REGISTER_BYTE},
+            {"ldrh", Token::LOAD_REGISTER_HW},
+            {"ldrsb", Token::LOAD_REGISTER_SIGNED_BYTE},
+            {"ldrsh", Token::LOAD_REGISTER_SIGNED_HW},
+            {"ldrsw", Token::LOAD_REGISTER_SIGHED_WORD},
             {"str", Token::STORE_OPCODE},
             {"lsl", Token::SHIFT_OPCODE},
             {"lsr", Token::SHIFT_OPCODE},
@@ -272,6 +276,7 @@ namespace ARM
             {"tbnz", Token::BRANCH_OPCODE},
             {"ret", Token::RET},
             {"mov", Token::MOVE_INSTRUCTION},
+            {"fmov", Token::FLOAT_MOVE_INSTRUCTION},
             {"mul", Token::MUL_OPCODE},
             {"div", Token::DIV_OPCODE},
             {"fcvt", Token::FLOAT_CONVERT},
