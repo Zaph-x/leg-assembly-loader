@@ -87,7 +87,7 @@ TEST_CASE("Parser can parse small programs") {
         CHECK(parser.get_program()->get_function("main")->get_instructions().size() == 21);
     }
 
-    /*SUBCASE("Parser can parse a decently written program") {
+    SUBCASE("Parser can parse a decently written program") {
         const std::string path = "./test_files/imperial_distance.s";
 
         std::filesystem::path p(path);
@@ -101,5 +101,5 @@ TEST_CASE("Parser can parse small programs") {
         CHECK(parser.get_program()->get_architecture() == "armv8-a");
         CHECK(parser.get_program()->get_functions().size() == 1);
         CHECK(parser.get_program()->get_function("main")->get_instructions().size() == 106);
-    }*/
+    }
 }

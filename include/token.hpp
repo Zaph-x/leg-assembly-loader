@@ -183,46 +183,41 @@ namespace ARM
                 {'+',  Token::PLUS_SIGN},
         };
 
-        inline static std::unordered_map<std::string, Token> branch_map = {};
-
-        inline static std::unordered_map<std::string, Token> shift_ops_map = {
-
-        };
-
         inline static std::unordered_map<char, Token> section_flags_map = {
-                {'a', Token::SHF_ALLOC},
-                {'w', Token::SHF_WRITE},
-                {'y', Token::SHF_ARM_PURECODE},
-                {'x', Token::SHF_EXECINSTR},
-                {'o', Token::SHF_LINK_ORDER},
-                {'M', Token::SHF_MERGE},
-                {'S', Token::SHF_STRINGS},
-                {'T', Token::SHF_TLS},
-                {'G', Token::SHF_GROUP},
-                {'?', Token::INHERIT_PREVIOUS_GROUP_IF_PRESENT}};
+            {'a', Token::SHF_ALLOC},
+            {'w', Token::SHF_WRITE},
+            {'y', Token::SHF_ARM_PURECODE},
+            {'x', Token::SHF_EXECINSTR},
+            {'o', Token::SHF_LINK_ORDER},
+            {'M', Token::SHF_MERGE},
+            {'S', Token::SHF_STRINGS},
+            {'T', Token::SHF_TLS},
+            {'G', Token::SHF_GROUP},
+            {'?', Token::INHERIT_PREVIOUS_GROUP_IF_PRESENT}};
         // .section .data, "ax", @progbits
         inline static std::unordered_map<std::string, Token> section_map = {
-                {".data",        Token::DATA_SECTION},
-                {".rodata",      Token::RODATA_SECTION},
-                {".text",        Token::TEXT_SECTION},
-                {".bss",         Token::BSS_SECTION},
-                {".pushsection", Token::PUSHSECTION_SECTION},
-                {".popsection",  Token::POPSECTION_SECTION},
-                {".section",     Token::SECTION}};
+            {".data",        Token::DATA_SECTION},
+            {".rodata",      Token::RODATA_SECTION},
+            {".text",        Token::TEXT_SECTION},
+            {".bss",         Token::BSS_SECTION},
+            {".pushsection", Token::PUSHSECTION_SECTION},
+            {".popsection",  Token::POPSECTION_SECTION},
+            {".section",     Token::SECTION},
+        };
 
         inline static std::unordered_map<std::string, Token> section_types_map = {
-                {"%progbits",      Token::SHT_PROGBITS},
-                {"%nobits",        Token::SHT_NOBITS},
-                {"%note",          Token::SHT_NOTE},
-                {"%init_array",    Token::SHT_INIT_ARRAY},
-                {"%fini_array",    Token::SHT_FINI_ARRAY},
-                {"%preinit_array", Token::SHT_PREINIT_ARRAY}
+            {"%progbits",      Token::SHT_PROGBITS},
+            {"%nobits",        Token::SHT_NOBITS},
+            {"%note",          Token::SHT_NOTE},
+            {"%init_array",    Token::SHT_INIT_ARRAY},
+            {"%fini_array",    Token::SHT_FINI_ARRAY},
+            {"%preinit_array", Token::SHT_PREINIT_ARRAY}
         };
 
         inline static std::unordered_map<std::string, Token> type_map = {
-                {"%function",   Token::FUNCTION},
-                {"%object",     Token::OBJECT},
-                {"%tls_object", Token::TLS_OBJECT}
+            {"%function",   Token::FUNCTION},
+            {"%object",     Token::OBJECT},
+            {"%tls_object", Token::TLS_OBJECT}
         };
 
 

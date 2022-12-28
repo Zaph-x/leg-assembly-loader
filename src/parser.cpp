@@ -10,8 +10,8 @@
 namespace ARM::Parser {
 
 #define assert(x) if (!(x)) {std::cerr << "Parser assertion failed. " #x " did not hold true. "<< std::endl \
-                    << "@ " << __FILE__ << ":" << __LINE__ << std::endl \
-                    << "Token: '" << lexem_stream.previous().get_curr_lexem() << "' " << lexem_stream.previous().get_token() << std::endl; throw std::exception();}
+                    << "    @ " << __FILE__ << ":" << __LINE__ << std::endl \
+                    << "    Token: '" << lexem_stream.previous().get_curr_lexem() << "' " << lexem_stream.previous().get_token() << std::endl; throw std::exception();}
 #define ERROR(lxm, msg) Parser::error(__LINE__, lxm, msg)
 
 
@@ -358,12 +358,23 @@ namespace ARM::Parser {
             if (val.get_token() == Tokens::Token::COMMA) {
                 val = lexem_stream.next();
                 assert(val.get_token() == Tokens::Token::DEC_NUMBER)
-                instr->add_arg(std::move(std::make_unique<Register>(regstr.get_curr_lexem())));
-                instr->add_arg(std::move(std::make_unique<Register>(val.get_curr_lexem())));
                 assert(lexem_stream.next().get_token() == Tokens::Token::R_BRACKET)
+                if (lexem_stream.peek().get_token() == Tokens::Token::EXCLAMATION) {
+                    instr->add_arg(std::make_shared<UpdatingMemoryAccess>(
+                            std::make_shared<Register>(regstr.get_curr_lexem()),
+                            std::make_shared<ImmediateValue>(val.get_curr_lexem())));
+                } else {
+                    instr->add_arg(std::make_shared<MemoryAccess>(
+                            std::make_shared<Register>(regstr.get_curr_lexem()),
+                            std::make_shared<ImmediateValue>(val.get_curr_lexem())));
+                }
             } else if (val.get_token() == Tokens::Token::R_BRACKET) {
-                instr->add_arg(std::move(std::make_unique<Register>(regstr.get_curr_lexem())));
-                instr->add_arg(std::move(std::make_unique<ImmediateValue>("0")));
+                instr->add_arg(std::make_shared<MemoryAccess>(
+                        std::make_shared<Register>(regstr.get_curr_lexem()),
+                        std::make_shared<ImmediateValue>("0")));
+                assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
+                val = lexem_stream.next();
+                instr->add_arg(std::make_shared<ImmediateValue>(val.get_curr_lexem()));
             } else ERROR(val, "Expected ',' or ']' after register");
 
         }
