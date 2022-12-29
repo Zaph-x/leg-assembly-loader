@@ -1,4 +1,7 @@
+if(NOT TARGET doctest)
 add_library(doctest OBJECT doctest.cpp)
+    
+endif()
 file(COPY test_files DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(convert_test convert_test.cpp ../src/converter/converter.cpp)
