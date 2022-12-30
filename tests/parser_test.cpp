@@ -1,5 +1,7 @@
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+
 #include <filesystem>
-#include "doctest.h"
+#include "doctest/doctest.h"
 #include "parser.hpp"
 
 

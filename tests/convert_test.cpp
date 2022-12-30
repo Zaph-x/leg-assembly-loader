@@ -1,5 +1,6 @@
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
-#include "doctest.h"
+#include "doctest/doctest.h"
 #include "converter.hpp"
 
 TEST_CASE("Convert a uint32 to a float") {

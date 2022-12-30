@@ -3,6 +3,9 @@
 # Prerequisites
 *.d
 
+.cache/
+doctest/
+
 tests/test_files/c_files
 cmake-build-debug/
 cmake-build-release/
