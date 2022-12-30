@@ -5,6 +5,6 @@ FetchContent_Declare(
     doctest
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/doctest
     GIT_REPOSITORY https://github.com/doctest/doctest.git
-    GIT_TAG v2.4.8
+    GIT_TAG v2.4.9
 )
 FetchContent_MakeAvailable(doctest )
