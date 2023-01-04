@@ -172,7 +172,6 @@ namespace ARM::Parser {
             }
             int size_int = std::stoi(size.get_curr_lexem());
             stub_map[idnt.get_curr_lexem()].set_size(size_int);
-            std::cerr << "Size of " << idnt.get_curr_lexem() << " is " << stub_map[idnt.get_curr_lexem()].get_size() << std::endl;
             this->verify_stub(idnt.get_curr_lexem());
             assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN);
         }
