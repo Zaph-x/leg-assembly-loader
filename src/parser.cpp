@@ -12,6 +12,12 @@ namespace ARM::Parser {
 #define assert(x) if (!(x)) {std::cerr << "Parser assertion failed. " #x " did not hold true. "<< std::endl \
                     << "    @ " << __FILE__ << ":" << __LINE__ << std::endl \
                     << "    Token: '" << lexem_stream.previous().get_curr_lexem() << "' " << lexem_stream.previous().get_token() << std::endl; throw std::exception();}
+
+#define asserteq(x, y) if (!((x)==(y))) {std::cerr << "Parser assertion failed. " << x << " == " << y << " did not hold true. "<< std::endl \
+                    << "    @ " << __FILE__ << ":" << __LINE__ << std::endl                                                                 \
+                    << "    S LINE: " << lexem_stream.previous().get_line() << ":" << lexem_stream.previous().get_possition() << std::endl                                                                                                                        \
+                    << "    Token: '" << lexem_stream.previous().get_curr_lexem() << "' " << lexem_stream.previous().get_token() << std::endl; throw std::exception();}
+
 #define ERROR(lxm, msg) Parser::error(__LINE__, lxm, msg)
 
 
@@ -256,7 +262,7 @@ namespace ARM::Parser {
         void Parser::assign_value(int expected_size, Tokens::Token expected_type, const std::string &ref_name) {
             if (stub_map.contains(ref_name) and stub_map[ref_name].get_size() == 0)
                 stub_map[ref_name].set_size(expected_size);
-            assert(lexem_stream.peek().get_token() == expected_type)
+            asserteq(lexem_stream.peek().get_token(), expected_type)
             stub_map[ref_name].get_values().push_back(lexem_stream.next().get_curr_lexem());
 
         }
@@ -280,7 +286,14 @@ namespace ARM::Parser {
                     assign_value(4, Tokens::Token::DEC_NUMBER, ref_name);
                     return;
                 }
-                case Tokens::Token::QUAD:
+                case Tokens::Token::QUAD: {
+                    if (lexem_stream.peek().get_token() == Tokens::Token::LABEL) {
+                        assign_value(8, Tokens::Token::LABEL, ref_name);
+                        return;
+                    }
+                    assign_value(8, Tokens::Token::DEC_NUMBER, ref_name);
+                    return;
+                }
                 case Tokens::Token::DOUBLE: {
                     if (stub_map.contains(ref_name) and stub_map[ref_name].get_size() == 0)
                         stub_map[ref_name].set_size(8);
@@ -299,8 +312,9 @@ namespace ARM::Parser {
                 }
                 case Tokens::Token::STRING: {
                     assign_value(8, Tokens::Token::RAW_STRING, ref_name);
+                    return;
                 }
-                default: return; //error(lexem_stream.previous(), "Expected .hword, .byte, .word, .float, .double, .quad or .octa after .global");
+                default: ERROR(lexem_stream.previous(), "Expected .hword, .byte, .word, .float, .double, .quad or .octa after .global");
             }
         }
 
@@ -372,7 +386,9 @@ namespace ARM::Parser {
                 instr->add_arg(std::make_shared<MemoryAccess>(
                         std::make_shared<Register>(regstr.get_curr_lexem()),
                         std::make_shared<ImmediateValue>("0")));
-                assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
+                if (lexem_stream.peek().get_token() == Tokens::Token::EOL_TOKEN) return;
+
+                asserteq(lexem_stream.next().get_token(), Tokens::Token::COMMA)
                 val = lexem_stream.next();
                 instr->add_arg(std::make_shared<ImmediateValue>(val.get_curr_lexem()));
             } else ERROR(val, "Expected ',' or ']' after register");
@@ -533,6 +549,16 @@ namespace ARM::Parser {
             instr->add_arg(std::make_shared<Label>(val.get_curr_lexem()));
         }
 
+        void Parser::parse_cvt(const std::shared_ptr<Instruction>& instr) {
+            auto reg = lexem_stream.next();
+            assert(Tokens::registers_map.contains(reg.get_curr_lexem()))
+            instr->add_arg(std::make_shared<Register>(reg.get_curr_lexem()));
+            asserteq(lexem_stream.next().get_token(), Tokens::Token::COMMA)
+            auto val = lexem_stream.next();
+            assert(Tokens::registers_map.contains(val.get_curr_lexem()))
+            instr->add_arg(std::make_shared<Register>(val.get_curr_lexem()));
+        }
+
         void Parser::handle_instruction(const std::string &ref_name) {
             auto instruction = lexem_stream.next();
             std::shared_ptr<Instruction> instr;
@@ -586,6 +612,7 @@ namespace ARM::Parser {
                 }
                 case Tokens::Token::FLOAT_CONVERT: {
                     instr = std::make_shared<Instruction>(InstructionType::CVT, instruction.get_curr_lexem());
+                    parse_cvt(instr);
                     break;
                 }
                 case Tokens::Token::STORE_PAIR_OPCODE: {

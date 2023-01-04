@@ -31,6 +31,18 @@ TEST_CASE("Parser can parse small programs") {
         CHECK(parser.get_program()->get_architecture() == "armv8-a");
     }
 
+    SUBCASE("Can parse file with no parser errors") {
+        std::string path = "./test_files/constants.s";
+
+        std::filesystem::path p(path);
+        CHECK(std::filesystem::exists(p));
+
+        ARM::Parser::Parser parser;
+        parser.set_up(path);
+
+        parser.assign_program();
+    }
+
 
     SUBCASE("Can parse file name") {
         std::string path = "./test_files/branch.s";

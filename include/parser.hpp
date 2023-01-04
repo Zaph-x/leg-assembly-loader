@@ -371,6 +371,8 @@ namespace Parser{
         void handle_condition_code(const std::shared_ptr<Instruction> &instr);
 
         void parse_adrp(const std::shared_ptr<Instruction> &instr);
+
+        void parse_cvt(const std::shared_ptr<Instruction> &instr);
     };
 }
 }
