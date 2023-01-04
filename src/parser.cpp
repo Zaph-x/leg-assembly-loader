@@ -40,11 +40,28 @@ namespace ARM::Parser {
             auto stub = stub_map[stub_name];
             if (stub.get_type() == GlobalType::UNDEFINED) return;
             if (stub.get_type() == GlobalType::F) return;
-                
+            if (stub.get_type() == GlobalType::REF) {
+                if (stub.get_size() == 0) return;
+                if (stub.get_values().size() == 0) return;
+                program->add_variable(std::make_shared<Variable>(stub));
+                return;
+            }
             if (stub.get_type() == GlobalType::O) {
                 if (stub.get_size() == 0) return;
                 if (stub.get_values().size() == 0) return;
                 program->add_variable(std::make_shared<Variable>(stub));
+                if (stub_map.contains(stub.get_values().front() + ":")) {
+                    auto stub2 = stub_map[stub.get_values().front() + ":"];
+                    if (stub2.get_type() == GlobalType::UNDEFINED) {
+                        stub2.set_name(stub.get_values().front());
+                        stub2.set_type(GlobalType::REF);
+                        stub2.set_size(8);
+                        stub_map[stub.get_values().front()] = stub2;
+                        // remove old stub
+                        stub_map.erase(stub.get_values().front() + ":");
+                        verify_stub(stub2.get_name());
+                    }
+                }
                 return;
             }
             ERROR(lexem_stream.previous(), "Stub type not supported.");

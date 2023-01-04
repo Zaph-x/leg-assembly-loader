@@ -46,6 +46,20 @@ TEST_CASE("Parser can parse small programs") {
         CHECK(parser.get_program()->get_global_variables().size() > 0);
     }
 
+    SUBCASE("Can parse label as global variable when label is a reference in another variable") {
+        std::string path = "./test_files/constants.s";
+
+        std::filesystem::path p(path);
+        CHECK(std::filesystem::exists(p));
+
+        ARM::Parser::Parser parser;
+        parser.set_up(path);
+
+        parser.assign_program();
+
+        CHECK(parser.get_program()->get_variable(".LC0") != nullptr);
+    }
+
     SUBCASE("Can parse file with no parser errors") {
         std::string path = "./test_files/constants.s";
 

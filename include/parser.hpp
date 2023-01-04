@@ -15,7 +15,7 @@ namespace ARM{
 namespace Parser{
 
     enum class GlobalType {
-        UNDEFINED, F, O, T
+        UNDEFINED, F, O, T, REF
     };
 
     class Node {
@@ -48,6 +48,7 @@ namespace Parser{
         std::string get_name() const { return name;}
         GlobalType get_type() const { return type;}
         int get_size() const {return size;}
+        void set_name(const std::string name) { this->name = name;}
         std::vector<std::string> get_values() const {return values;}
         void add_value(const std::string &value) {values.push_back(value);}
         void set_size(int size) {this->size=size;}
@@ -163,11 +164,11 @@ namespace Parser{
         Variable() = default;
         Variable(const DefinitionStub &def)
         {
-            if (def.type != GlobalType::O) throw std::runtime_error("Wrong type of definition");
+            if (def.type != GlobalType::O and def.type != GlobalType::REF) throw std::runtime_error("Wrong type of definition");
             this->name = def.name;
             this->size = def.size;
             this->values = def.values;
-            this->type = GlobalType::O;
+            this->type = def.type;
         }
         ~Variable() override = default;
     };
@@ -244,7 +245,6 @@ namespace Parser{
         }
 
         void add_variable(const std::shared_ptr<Variable>& var) {
-            std::cerr << "Adding variable " << var->get_name() << std::endl;
             global_variables.push_back(var);
         }
 
