@@ -49,6 +49,7 @@ namespace Parser{
         GlobalType get_type() const { return type;}
         int get_size() const {return size;}
         std::vector<std::string> get_values() const {return values;}
+        void add_value(const std::string &value) {values.push_back(value);}
         void set_size(int size) {this->size=size;}
         void set_type(GlobalType type) {this->type=type;}
 
@@ -243,6 +244,7 @@ namespace Parser{
         }
 
         void add_variable(const std::shared_ptr<Variable>& var) {
+            std::cerr << "Adding variable " << var->get_name() << std::endl;
             global_variables.push_back(var);
         }
 

@@ -32,32 +32,22 @@ namespace ARM::Parser {
         std::map<std::string, DefinitionStub> stub_map;
 
         void Parser::verify_stub(const std::string &stub_name) {
-            if (!stub_map.contains(stub_name)) return;
-
-            auto& stub = stub_map[stub_name];
-
+            // check if stub_map contains stub_name
+            if (stub_map.find(stub_name) == stub_map.end()) {
+                std::cerr << "Parser error: Stub '" << stub_name << "' not found." << std::endl;
+                throw std::exception();
+            }
+            auto stub = stub_map[stub_name];
             if (stub.get_type() == GlobalType::UNDEFINED) return;
-
-            else if (stub.get_type() == GlobalType::F) return;
-            else if (stub.get_type() == GlobalType::O) {
-                if (stub.get_size() == 0) {std::cerr << "Var size == 0" << std::endl; return;}
+            if (stub.get_type() == GlobalType::F) return;
+                
+            if (stub.get_type() == GlobalType::O) {
+                if (stub.get_size() == 0) return;
                 if (stub.get_values().size() == 0) return;
-                add_variable(std::make_shared<Variable>(stub));
-            } else {
-                ERROR(lexem_stream.current(), "Unsupported stub type");
+                program->add_variable(std::make_shared<Variable>(stub));
+                return;
             }
-
-            if (!(stub.get_name() == stub.get_name() and (stub.get_type() == GlobalType::F or stub.get_size() != 0) and
-                stub.get_type() != GlobalType::UNDEFINED and !stub.get_values().empty())) return;
-
-            if (stub.get_type() == GlobalType::F ){
-                //Function Node
-            }
-
-            if (stub.get_type() == GlobalType::O){
-                std::shared_ptr<Variable>var_node (new Variable(stub));
-                this->get_program()->add_node(std::move(var_node));
-            }
+            ERROR(lexem_stream.previous(), "Stub type not supported.");
         }
 
         void Parser::set_up(const std::string &path) {
@@ -180,7 +170,9 @@ namespace ARM::Parser {
             if (!stub_map.count(idnt.get_curr_lexem())) {
                 stub_map[idnt.get_curr_lexem()] = DefinitionStub(idnt.get_curr_lexem());
             }
-            stub_map[idnt.get_curr_lexem()].set_size(std::atoi(size.get_curr_lexem().c_str()));
+            int size_int = std::stoi(size.get_curr_lexem());
+            stub_map[idnt.get_curr_lexem()].set_size(size_int);
+            std::cerr << "Size of " << idnt.get_curr_lexem() << " is " << stub_map[idnt.get_curr_lexem()].get_size() << std::endl;
             this->verify_stub(idnt.get_curr_lexem());
             assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN);
         }
@@ -263,8 +255,7 @@ namespace ARM::Parser {
             if (stub_map.contains(ref_name) and stub_map[ref_name].get_size() == 0)
                 stub_map[ref_name].set_size(expected_size);
             asserteq(lexem_stream.peek().get_token(), expected_type)
-            stub_map[ref_name].get_values().push_back(lexem_stream.next().get_curr_lexem());
-
+            stub_map[ref_name].add_value(lexem_stream.next().get_curr_lexem());
         }
 
         void Parser::assign_value(const std::string &ref_name) {
