@@ -40,9 +40,9 @@ namespace ARM::Parser {
 
             else if (stub.get_type() == GlobalType::F) return;
             else if (stub.get_type() == GlobalType::O) {
-                if (stub.get_size() == 0) return;
+                if (stub.get_size() == 0) {std::cerr << "Var size == 0" << std::endl; return;}
                 if (stub.get_values().size() == 0) return;
-                // add_variable(Variable(stub));
+                add_variable(std::make_shared<Variable>(stub));
             } else {
                 ERROR(lexem_stream.current(), "Unsupported stub type");
             }
@@ -744,6 +744,13 @@ namespace ARM::Parser {
             }
             assert(lexem_stream.next().get_token() == Tokens::Token::FUNC_END_LABEL)
             assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN)
+        }
+
+        void Parser::add_variable(const std::shared_ptr<Variable> &var) {
+            if (program->get_variable(var->get_name()) != nullptr) {
+                ERROR(lexem_stream.previous(), "Variable already defined");
+            }
+            program->add_variable(var);
         }
     }
 #undef assert

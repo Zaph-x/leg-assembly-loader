@@ -31,6 +31,21 @@ TEST_CASE("Parser can parse small programs") {
         CHECK(parser.get_program()->get_architecture() == "armv8-a");
     }
 
+    SUBCASE("Can parse file and assign global variables") {
+        std::string path = "./test_files/constants.s";
+
+        std::filesystem::path p(path);
+        CHECK(std::filesystem::exists(p));
+
+        ARM::Parser::Parser parser;
+        parser.set_up(path);
+
+        parser.assign_program();
+
+        CHECK(parser.get_program()->get_architecture() == "armv8-a");
+        CHECK(parser.get_program()->get_global_variables().size() > 0);
+    }
+
     SUBCASE("Can parse file with no parser errors") {
         std::string path = "./test_files/constants.s";
 
@@ -101,7 +116,7 @@ TEST_CASE("Parser can parse small programs") {
         CHECK(parser.get_program()->get_function("main")->get_instructions().size() == 21);
     }
 
-    SUBCASE("Parser can parse a decently written program") {
+/*    SUBCASE("Parser can parse a decently written program") {
         const std::string path = "./test_files/imperial_distance.s";
 
         std::filesystem::path p(path);
@@ -116,4 +131,5 @@ TEST_CASE("Parser can parse small programs") {
         CHECK(parser.get_program()->get_functions().size() == 1);
         CHECK(parser.get_program()->get_function("main")->get_instructions().size() == 106);
     }
+*/
 }

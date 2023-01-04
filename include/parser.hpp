@@ -242,6 +242,21 @@ namespace Parser{
             nodes.push_back(node);
         }
 
+        void add_variable(const std::shared_ptr<Variable>& var) {
+            global_variables.push_back(var);
+        }
+
+        std::vector<std::shared_ptr<Variable>> get_global_variables() const { return global_variables;}
+
+        std::shared_ptr<Variable> get_variable(const std::string &name) {
+            for (auto &var : global_variables) {
+                if (var->get_name() == name) {
+                    return var;
+                }
+            }
+            return nullptr;
+        }
+
         void set_architecture(const std::string &arch) {
             architecture = arch;
         }
@@ -373,6 +388,8 @@ namespace Parser{
         void parse_adrp(const std::shared_ptr<Instruction> &instr);
 
         void parse_cvt(const std::shared_ptr<Instruction> &instr);
+
+        void add_variable(const std::shared_ptr<Variable> &var);
     };
 }
 }
