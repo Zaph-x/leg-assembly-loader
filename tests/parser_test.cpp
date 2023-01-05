@@ -120,6 +120,7 @@ TEST_CASE("Parser can parse small programs") {
                 CHECK(std::dynamic_pointer_cast<ARM::Parser::Register>(parser.get_program()->get_function("main")->get_instructions()[5]->get_args()[0]) != nullptr);
                 CHECK(std::dynamic_pointer_cast<ARM::Parser::Register>(parser.get_program()->get_function("main")->get_instructions()[5]->get_args()[0])->get_name() == "x29");
                 CHECK(std::dynamic_pointer_cast<ARM::Parser::Register>(parser.get_program()->get_function("main")->get_instructions()[5]->get_args()[1]) != nullptr);
+                CHECK(std::dynamic_pointer_cast<ARM::Parser::ImmediateValue>(parser.get_program()->get_function("main")->get_instructions()[5]->get_args()[1]) == nullptr);
                 CHECK(std::dynamic_pointer_cast<ARM::Parser::Register>(parser.get_program()->get_function("main")->get_instructions()[5]->get_args()[1])->get_name() == "sp");
             }
         }
