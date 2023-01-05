@@ -31,7 +31,7 @@ TEST_CASE("Parser can parse small programs") {
         CHECK(parser.get_program()->get_architecture() == "armv8-a");
     }
 
-    SUBCASE("Can parse file and assign global variables") {
+    SUBCASE("Can parse the constants.s file successfully") {
         std::string path = "./test_files/constants.s";
 
         std::filesystem::path p(path);
@@ -42,35 +42,27 @@ TEST_CASE("Parser can parse small programs") {
 
         parser.assign_program();
 
-        CHECK(parser.get_program()->get_architecture() == "armv8-a");
-        CHECK(parser.get_program()->get_global_variables().size() > 0);
+        SUBCASE("Can parse the architecture") {
+            CHECK(parser.get_program()->get_architecture() == "armv8-a");
+        }
+        SUBCASE("Can parse the file name") {
+            CHECK(parser.get_program()->get_file_name() == "\"constants.c\"");
+        }
+        SUBCASE("Can assign some global variables") {
+            CHECK(parser.get_program()->get_global_variables().size() > 0);
+        }
+        SUBCASE("Can get a variable from the program") {
+            CHECK(parser.get_program()->get_variable("a") != nullptr);
+        }
+        SUBCASE("Can assign a global variable as reference to a string") {
+            auto ref = parser.get_program()->get_variable("f");
+            CHECK(ref->get_type() == ARM::Parser::GlobalType::REF);
+            auto lc0 = parser.get_program()->get_variable(".LC0");
+            CHECK(lc0->get_type() == ARM::Parser::GlobalType::O);
+        }
+
     }
 
-    SUBCASE("Can parse label as global variable when label is a reference in another variable") {
-        std::string path = "./test_files/constants.s";
-
-        std::filesystem::path p(path);
-        CHECK(std::filesystem::exists(p));
-
-        ARM::Parser::Parser parser;
-        parser.set_up(path);
-
-        parser.assign_program();
-
-        CHECK(parser.get_program()->get_variable(".LC0") != nullptr);
-    }
-
-    SUBCASE("Can parse file with no parser errors") {
-        std::string path = "./test_files/constants.s";
-
-        std::filesystem::path p(path);
-        CHECK(std::filesystem::exists(p));
-
-        ARM::Parser::Parser parser;
-        parser.set_up(path);
-
-        parser.assign_program();
-    }
 
 
     SUBCASE("Can parse file name") {

@@ -54,14 +54,16 @@ namespace ARM::Parser {
                     auto stub2 = stub_map[stub.get_values().front() + ":"];
                     if (stub2.get_type() == GlobalType::UNDEFINED) {
                         stub2.set_name(stub.get_values().front());
-                        stub2.set_type(GlobalType::REF);
+                        stub2.set_type(GlobalType::O);
                         stub2.set_size(8);
-                        stub_map[stub.get_values().front()] = stub2;
+                        stub_map[stub2.get_name()] = stub2;
                         // remove old stub
                         stub_map.erase(stub.get_values().front() + ":");
                         verify_stub(stub2.get_name());
+                        program->get_variable(stub.get_name())->set_type(GlobalType::REF);
                     }
                 }
+                stub_map.erase(stub.get_name());
                 return;
             }
             ERROR(lexem_stream.previous(), "Stub type not supported.");
