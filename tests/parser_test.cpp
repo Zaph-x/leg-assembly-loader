@@ -100,27 +100,31 @@ TEST_CASE("Parser can parse small programs") {
         parser.set_up(path);
 
         parser.assign_program();
-        CHECK(parser.get_program()->get_file_name() == "\"function.c\"");
-        CHECK(parser.get_program()->get_architecture() == "armv8-a");
-        CHECK(parser.get_program()->get_functions().size() == 9);
+        SUBCASE("Can assign name of file to program") {
+            CHECK(parser.get_program()->get_file_name() == "\"function.c\"");
+        }
+        SUBCASE("Can assign architecture to program") {
+            CHECK(parser.get_program()->get_architecture() == "armv8-a");
+        }
+        SUBCASE("Can assign functions to program") {
+            CHECK(parser.get_program()->get_functions().size() == 9);
+        }
+        SUBCASE("Can assign correct amount of instructions to main function") {
+            CHECK(parser.get_program()->get_function("main")->get_instructions().size() == 21);
+            SUBCASE("Correctly assigned first and final instruction of main function") {
+                CHECK(parser.get_program()->get_function("main")->get_instructions()[0]->get_name() == ".cfi_startproc");
+                CHECK(parser.get_program()->get_function("main")->get_instructions()[20]->get_name() == ".cfi_endproc");
+            }
+            SUBCASE("Correctly assigns arguments to a MOV instruction") {
+                CHECK(parser.get_program()->get_function("main")->get_instructions()[5]->get_args().size() == 2);
+                CHECK(std::dynamic_pointer_cast<ARM::Parser::Register>(parser.get_program()->get_function("main")->get_instructions()[5]->get_args()[0]) != nullptr);
+                CHECK(std::dynamic_pointer_cast<ARM::Parser::Register>(parser.get_program()->get_function("main")->get_instructions()[5]->get_args()[0])->get_name() == "x29");
+                CHECK(std::dynamic_pointer_cast<ARM::Parser::Register>(parser.get_program()->get_function("main")->get_instructions()[5]->get_args()[1]) != nullptr);
+                CHECK(std::dynamic_pointer_cast<ARM::Parser::Register>(parser.get_program()->get_function("main")->get_instructions()[5]->get_args()[1])->get_name() == "sp");
+            }
+        }
     }
 
-
-    SUBCASE("Parser can correctly assign instructions to functions in a program"){
-        const std::string path = "./test_files/function.s";
-
-        std::filesystem::path p(path);
-        CHECK(std::filesystem::exists(p));
-
-
-        ARM::Parser::Parser parser;
-        parser.set_up(path);
-
-        parser.assign_program();
-        CHECK(parser.get_program()->get_file_name() == "\"function.c\"");
-        CHECK(parser.get_program()->get_architecture() == "armv8-a");
-        CHECK(parser.get_program()->get_function("main")->get_instructions().size() == 21);
-    }
 
 /*    SUBCASE("Parser can parse a decently written program") {
         const std::string path = "./test_files/imperial_distance.s";

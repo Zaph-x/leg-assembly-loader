@@ -136,6 +136,7 @@ namespace Parser{
         InstructionType get_type() const { return type;}
         std::string get_name() const { return name;}
         void add_arg(std::shared_ptr<Node> arg) { args.push_back(std::move(arg));}
+        std::vector<std::shared_ptr<Node>> get_args() const { return args;}
         void set_condition(ConditionCode condition) { this->cond = condition;}
     private:
         InstructionType type = InstructionType::UNDEFINED;
