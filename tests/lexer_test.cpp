@@ -20,6 +20,15 @@ void check_sequence_not_contains(std::vector<ARM::Lexer::Lexem> lexems, ARM::Tok
     }
 }
 
+void check_sequence_contains(std::vector<ARM::Lexer::Lexem> lexems, ARM::Tokens::Token token) {
+    for (auto lxm : lexems) {
+        if (lxm.get_token() == token) {
+            return;
+        }
+    }
+    CHECK_MESSAGE(false, "Expected to find " << token);
+}
+
 void check_sequence(std::vector<ARM::Lexer::Lexem> lexems, std::vector<std::string> tokens) {
     for (int i = 0; i < std::min(lexems.size(), tokens.size()); i++) {
         CHECK_MESSAGE(lexems[i].get_curr_lexem().compare(tokens[i]) == 0, "Index: " << i << " Token: " << \
@@ -236,4 +245,5 @@ TEST_CASE("Lexer can read files and generate lexems") {
         CHECK(lexer.get_lexems().size() > 0);
         check_sequence_not_contains(lexer.get_lexems(), ARM::Tokens::Token::ERROR);
     }
+    
 }

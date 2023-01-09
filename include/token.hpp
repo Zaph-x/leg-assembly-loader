@@ -330,7 +330,6 @@ namespace ARM
         inline static std::unordered_map<std::string, Token> registers_map = {
             {"sp", Token::SP},
             {"zr", Token::XZR},
-            {"wzr", Token::WZR},
             {"xzr", Token::XZR},
             {"pc", Token::PC},
             {"elr", Token::ELR},

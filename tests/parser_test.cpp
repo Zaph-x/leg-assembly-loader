@@ -60,6 +60,11 @@ TEST_CASE("Parser can parse small programs") {
             auto lc0 = parser.get_program()->get_variable(".LC0");
             CHECK(lc0->get_type() == ARM::Parser::GlobalType::O);
         }
+        SUBCASE("Arithmetic instructions are stored with arguments") {
+            auto add_instr = parser.get_program()->get_function("main")->get_instructions()[7];
+            CHECK(add_instr->get_type() == ARM::Parser::InstructionType::ADD);
+            CHECK(add_instr->get_args().size() == 3);
+        }
 
     }
 
@@ -124,6 +129,17 @@ TEST_CASE("Parser can parse small programs") {
                 CHECK(std::dynamic_pointer_cast<ARM::Parser::Register>(parser.get_program()->get_function("main")->get_instructions()[5]->get_args()[1])->get_name() == "sp");
             }
         }
+    }
+    SUBCASE("Parser correctly finds wzr register in program") {
+        const std::string path = "./test_files/function_parameters.s";
+
+        std::filesystem::path p(path);
+        CHECK(std::filesystem::exists(p));
+
+        ARM::Parser::Parser parser;
+        parser.set_up(path);
+
+        parser.assign_program();
     }
 
 

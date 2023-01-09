@@ -149,11 +149,6 @@ namespace ARM::Parser {
             assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN);
         }
 
-        void parse_object(std::map<std::string, std::string> &placeholder_values) {
-
-
-        }
-
         bool Parser::has_identifier(const std::string &name) {
             return this->get_program()->has_variable_definition(name) || this->get_program()->has_function_definition(name);
         }
@@ -223,10 +218,8 @@ namespace ARM::Parser {
         void Parser::handle_function(const std::string &ref_name) {
             assert(lexem_stream.next().get_token() == Tokens::Token::FUNC_BEGIN_LABEL)
             assert(lexem_stream.next().get_token() == Tokens::Token::EOL_TOKEN)
-            bool unknown = false;
             if(!stub_map.contains(ref_name)){
                 stub_map[ref_name] = DefinitionStub(ref_name);
-                unknown = true;
             }
             stub_map[ref_name].set_type(GlobalType::F);
             std::shared_ptr<Function> func = std::make_unique<Function>(stub_map[ref_name]);
@@ -339,39 +332,39 @@ namespace ARM::Parser {
         void Parser::parse_arithmetic(const std::shared_ptr<Instruction>& instr) {
             auto reg = lexem_stream.next();
             assert(Tokens::registers_map.contains(reg.get_curr_lexem()))
-            instr->add_arg(std::move(std::make_unique<Register>(reg.get_curr_lexem())));
+            instr->add_arg(std::make_shared<Register>(reg.get_curr_lexem()));
             assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
             auto reg2 = lexem_stream.next();
             assert(Tokens::registers_map.contains(reg2.get_curr_lexem()))
-            instr->add_arg(std::move(std::make_unique<Register>(reg2.get_curr_lexem())));
+            instr->add_arg(std::make_shared<Register>(reg2.get_curr_lexem()));
             assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
             auto val = lexem_stream.next();
             if (val.get_token() == Tokens::Token::DEC_NUMBER) {
-                instr->add_arg(std::move(std::make_unique<ImmediateValue>(val.get_curr_lexem())));
+                instr->add_arg(std::make_shared<ImmediateValue>(val.get_curr_lexem()));
             } else if (Tokens::registers_map.contains(val.get_curr_lexem())) {
-                instr->add_arg(std::move(std::make_unique<Register>(val.get_curr_lexem())));
+                instr->add_arg(std::make_shared<Register>(val.get_curr_lexem()));
             } else if (val.get_token() == Tokens::Token::LABEL) {
-                instr->add_arg(std::move(std::make_unique<Label>(val.get_curr_lexem())));
+                instr->add_arg(std::make_shared<Label>(val.get_curr_lexem()));
             } else ERROR(val, "Expected register or immediate value");
         }
 
         void Parser::parse_mov(const std::shared_ptr<Instruction>& instr) {
             auto reg = lexem_stream.next();
             assert(Tokens::registers_map.contains(reg.get_curr_lexem()))
-            instr->add_arg(std::move(std::make_unique<Register>(reg.get_curr_lexem())));
+            instr->add_arg(std::make_shared<Register>(reg.get_curr_lexem()));
             assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
             auto val = lexem_stream.next();
             if (val.get_token() == Tokens::Token::DEC_NUMBER) {
-                instr->add_arg(std::move(std::make_unique<ImmediateValue>(val.get_curr_lexem())));
+                instr->add_arg(std::make_shared<ImmediateValue>(val.get_curr_lexem()));
             } else if (Tokens::registers_map.contains(val.get_curr_lexem())) {
-                instr->add_arg(std::move(std::make_unique<Register>(val.get_curr_lexem())));
+                instr->add_arg(std::make_shared<Register>(val.get_curr_lexem()));
             } else ERROR(val, "Expected register or immediate value");
         }
 
-        void Parser::parse_load(const std::shared_ptr<Instruction>& instr) {
+        void Parser::parse_store_load(const std::shared_ptr<Instruction>& instr) {
             auto reg = lexem_stream.next();
             assert(Tokens::registers_map.contains(reg.get_curr_lexem()))
-            instr->add_arg(std::move(std::make_unique<Register>(reg.get_curr_lexem())));
+            instr->add_arg(std::make_shared<Register>(reg.get_curr_lexem()));
             assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
             auto val = lexem_stream.next();
             assert(val.get_token() == Tokens::Token::L_BRACKET)
@@ -454,36 +447,6 @@ namespace ARM::Parser {
                 instr->add_arg(program->get_function(val.get_curr_lexem()));
             } else {
                 instr->add_arg(std::make_shared<Function>(val.get_curr_lexem()));
-            }
-        }
-
-        void Parser::parse_store(const std::shared_ptr<Instruction>& instr) {
-            auto reg = lexem_stream.next();
-            assert(Tokens::registers_map.contains(reg.get_curr_lexem()))
-            instr->add_arg(std::make_shared<Register>(reg.get_curr_lexem()));
-            assert(lexem_stream.next().get_token() == Tokens::Token::COMMA)
-            auto val = lexem_stream.next();
-            assert(val.get_token() == Tokens::Token::L_BRACKET)
-            auto regstr = lexem_stream.next();
-            assert(Tokens::registers_map.contains(regstr.get_curr_lexem()))
-            auto nxt = lexem_stream.next();
-            if (nxt.get_token() == Tokens::Token::R_BRACKET) {
-                instr->add_arg(std::make_shared<MemoryAccess>
-                                       (std::make_shared<Register>(regstr.get_curr_lexem()),
-                                        std::make_shared<ImmediateValue>("0")));
-                nxt = lexem_stream.next();
-                assert(nxt.get_token() == Tokens::Token::COMMA)
-                nxt = lexem_stream.next();
-                assert(nxt.get_token() == Tokens::Token::DEC_NUMBER)
-                instr->add_arg(std::make_shared<ImmediateValue>(nxt.get_curr_lexem()));
-            } else {
-                assert(nxt.get_token() == Tokens::Token::COMMA)
-                auto offset = lexem_stream.next();
-                assert(offset.get_token() == Tokens::Token::DEC_NUMBER)
-                assert(lexem_stream.next().get_token() == Tokens::Token::R_BRACKET)
-                instr->add_arg(std::make_shared<MemoryAccess>
-                                       (std::make_shared<Register>(regstr.get_curr_lexem()),
-                                        std::make_shared<ImmediateValue>(offset.get_curr_lexem())));
             }
         }
 
@@ -601,12 +564,12 @@ namespace ARM::Parser {
                 }
                 case Tokens::Token::LOAD_OPCODE: {
                     instr = std::make_shared<Instruction>(InstructionType::LDR, instruction.get_curr_lexem());
-                    parse_load(instr);
+                    parse_store_load(instr);
                     break;
                 }
                 case Tokens::Token::STORE_OPCODE: {
                     instr = std::make_shared<Instruction>(InstructionType::STR, instruction.get_curr_lexem());
-                    parse_store(instr);
+                    parse_store_load(instr);
                     break;
                 }
                 case Tokens::Token::BRANCH_OPCODE: {
@@ -654,27 +617,27 @@ namespace ARM::Parser {
                 }
                 case Tokens::Token::LOAD_REGISTER_SIGNED_BYTE: {
                     instr = std::make_shared<Instruction>(InstructionType::LDR_SIGNED, instruction.get_curr_lexem());
-                    parse_load(instr);
+                    parse_store_load(instr);
                     break;
                 }
                 case Tokens::Token::LOAD_REGISTER_BYTE: {
                     instr = std::make_shared<Instruction>(InstructionType::LDR, instruction.get_curr_lexem());
-                    parse_load(instr);
+                    parse_store_load(instr);
                     break;
                 }
                 case Tokens::Token::LOAD_REGISTER_HW: {
                     instr = std::make_shared<Instruction>(InstructionType::LDR, instruction.get_curr_lexem());
-                    parse_load(instr);
+                    parse_store_load(instr);
                     break;
                 }
                 case Tokens::Token::LOAD_REGISTER_SIGNED_HW: {
                     instr = std::make_shared<Instruction>(InstructionType::LDR_SIGNED, instruction.get_curr_lexem());
-                    parse_load(instr);
+                    parse_store_load(instr);
                     break;
                 }
                 case Tokens::Token::LOAD_REGISTER_SIGHED_WORD: {
                     instr = std::make_shared<Instruction>(InstructionType::LDR_SIGNED, instruction.get_curr_lexem());
-                    parse_load(instr);
+                    parse_store_load(instr);
                     break;
                 }
                 case Tokens::Token::FLOAT_MOVE_INSTRUCTION: {

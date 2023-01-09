@@ -108,7 +108,7 @@ namespace ARM::Lexer {
                     return {Tokens::symbols_map[c], std::string(1, c), line, position};
                 }
 
-                if ((c == 'w' or c == 'x' or c == 'v' or c == 's' or c == 'd'  or c == 'b' or c == 'h') and (std::isdigit(in->peek()) or in->peek() == 'p')) {
+                if ((c == 'w' or c == 'x' or c == 'v' or c == 's' or c == 'd'  or c == 'b' or c == 'h') and (std::isdigit(in->peek()) or in->peek() == 'p' or in->peek() == 'z')) {
                     buffer += c;
                     while (isalnum(in->peek())) {
                         buffer += get_next_char();

@@ -371,8 +371,7 @@ namespace Parser{
 
         void parse_mov(const std::shared_ptr<Instruction>&instr);
 
-        void parse_load(const std::shared_ptr<Instruction>&instr);
-        void parse_store(const std::shared_ptr<Instruction>&instr);
+        void parse_store_load(const std::shared_ptr<Instruction>&instr);
 
         void parse_pair_instruction(const std::shared_ptr<Instruction>&instr);
 
@@ -384,7 +383,7 @@ namespace Parser{
 
         void parse_branch(const std::shared_ptr<Instruction>&instr);
 
-        void parse_ldp(std::shared_ptr<Instruction> instr);;
+        void parse_ldp(std::shared_ptr<Instruction> instr);
 
         void handle_condition_code(const std::shared_ptr<Instruction> &instr);
 

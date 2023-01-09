@@ -74,7 +74,7 @@ namespace ARM::VectorStream {
 
     private:
         std::vector<T> vector;
-        int index = 0;
+        unsigned long int index = 0;
 
         T get(int index) {
             return vector.at(index);
