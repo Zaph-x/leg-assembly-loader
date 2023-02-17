@@ -89,6 +89,7 @@ namespace Parser{
 
         void print() override { return; }
         void add_node(std::shared_ptr<Node>node) override {return;}
+        std::string get_value() const { return value;}
     private:
         std::string value;
     };
